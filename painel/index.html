@@ -1,0 +1,1119 @@
+<style>
+/* Virtus: faixa verde-escura com dourado no topo, cartões brancos, acento verde, números em dourado */
+.rv {
+  --vt-hero:#0f2e24; --vt-hero-fg:#f1f5f2; --vt-hero-muted:#a9c2b6; --vt-gold:#c9a24a; --vt-gold-ink:#8a6a1f;
+  --vt-bg:#f3f4f1; --vt-surface:#ffffff; --vt-fg:#17201b; --vt-muted:#5f6b64; --vt-line:#e1e5e1;
+  --vt-accent:#1f6b50; --vt-accent-soft:#e3efe9; --vt-bad:#a8432f; --vt-warn:#9a6b12; --vt-ok:#1f6b50;
+  --vt-display: "Fraunces", var(--font-anthropic-serif), Georgia, serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .rv {
+  --vt-hero:#0a221a; --vt-hero-fg:#eef4f0; --vt-hero-muted:#93b3a4; --vt-gold:#d8b45e; --vt-gold-ink:#d8b45e;
+  --vt-bg:#0e1411; --vt-surface:#161e1a; --vt-fg:#e8eeea; --vt-muted:#9caaa2; --vt-line:#26312b;
+  --vt-accent:#7fcaa9; --vt-accent-soft:#1c2c25; --vt-bad:#e08b76; --vt-warn:#e0b65e; --vt-ok:#7fcaa9; } }
+:root[data-theme="dark"] .rv {
+  --vt-hero:#0a221a; --vt-hero-fg:#eef4f0; --vt-hero-muted:#93b3a4; --vt-gold:#d8b45e; --vt-gold-ink:#d8b45e;
+  --vt-bg:#0e1411; --vt-surface:#161e1a; --vt-fg:#e8eeea; --vt-muted:#9caaa2; --vt-line:#26312b;
+  --vt-accent:#7fcaa9; --vt-accent-soft:#1c2c25; --vt-bad:#e08b76; --vt-warn:#e0b65e; --vt-ok:#7fcaa9; }
+.rv {
+  --color-fg: var(--vt-fg); --color-fg-muted: var(--vt-muted); --color-panel: var(--vt-surface); --color-bg: var(--vt-bg);
+  --color-border-line: var(--vt-line); --color-bad: var(--vt-bad); --color-warn: var(--vt-warn); --color-ok: var(--vt-ok); --color-good: var(--vt-accent);
+  display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); color: var(--vt-fg);
+  background: var(--vt-bg); border-radius: 16px; padding: 0 0 var(--cds-pad-lg); overflow: hidden;
+}
+.rv > :not(.rv-hero) { margin-inline: clamp(12px, 2.5vw, 24px); }
+.rv-head { display: grid; gap: var(--cds-gap-sm); }
+.rv-hero { background: var(--vt-hero); color: var(--vt-hero-fg); padding: clamp(28px, 5vw, 48px) clamp(16px, 3vw, 32px) clamp(22px, 4vw, 36px); gap: 14px; position: relative; overflow: hidden; }
+.rv-hero::before, .rv-hero::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; border: 1px solid color-mix(in srgb, var(--vt-gold) 32%, transparent); }
+.rv-hero::after { right: -120px; top: -120px; width: 420px; height: 420px; }
+.rv-hero::before { right: -40px; top: -40px; width: 260px; height: 260px; }
+.rv-hero > * { position: relative; z-index: 1; }
+.rv-eyebrow { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--vt-gold); font-weight: 600; }
+.rv-title { font-family: var(--vt-display); font-weight: 500; font-size: clamp(30px, 5vw, 48px); line-height: 1.05; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.rv-take { margin: 0; color: var(--vt-muted); max-width: 70ch; }
+.rv-hero .rv-take { color: var(--vt-hero-muted); }
+.rv-bar { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; }
+.rv-chip { font: inherit; font-size: var(--cds-font-size-caption); padding: 5px 14px; border-radius: 999px; border: 1px solid var(--vt-line); background: var(--vt-surface); color: var(--vt-fg); cursor: pointer; }
+.rv-chip[aria-pressed="true"] { background: var(--vt-accent); color: var(--vt-surface); border-color: var(--vt-accent); }
+.rv-hero .rv-chip { background: transparent; color: var(--vt-hero-fg); border-color: color-mix(in srgb, var(--vt-hero-fg) 28%, transparent); }
+.rv-hero .rv-chip[aria-pressed="true"] { background: var(--vt-gold); color: #17201b; border-color: var(--vt-gold); font-weight: 600; }
+.rv-chip:focus-visible, .rv-search:focus-visible, .rv-tab:focus-visible { outline: 2px solid var(--vt-gold); outline-offset: 2px; }
+.rv-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--cds-gap-md); }
+.rv-kpi { background: var(--vt-surface); border: 1px solid var(--vt-line); border-top: 2px solid var(--vt-gold); border-radius: 12px; padding: var(--cds-pad-lg); display: grid; gap: 2px; }
+.rv-kpi-label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--vt-muted); font-weight: 500; }
+.rv-kpi-value { font-family: var(--vt-display); font-weight: 600; font-size: clamp(26px, 3.4vw, 34px); line-height: 1.1; color: var(--vt-gold-ink); font-variant-numeric: tabular-nums; }
+.rv-kpi-note { font-size: var(--cds-font-size-caption); color: var(--vt-muted); }
+.rv-funil { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+.rv-fstep { position: relative; background: var(--vt-surface); border: 1px solid var(--vt-line); border-top: 2px solid var(--vt-gold); border-radius: 12px; padding: var(--cds-pad-lg); display: grid; gap: 4px; align-content: start; min-width: 0; }
+.rv-fstep.rv-frate { background: var(--vt-accent-soft); border-top-color: var(--vt-accent); }
+.rv-fstep.rv-frate .rv-kpi-value { color: var(--vt-accent); }
+.rv-fstep:not(:last-child)::after { content: "›"; position: absolute; right: calc(-1 * var(--cds-gap-md) / 2 - 6px); top: 50%; transform: translateY(-50%); font-size: 22px; line-height: 1; color: var(--vt-gold); z-index: 1; }
+.rv-fbar { display: block; height: 6px; border-radius: 3px; background: var(--vt-line); overflow: hidden; margin-top: 4px; }
+.rv-fbar > i { display: block; height: 100%; width: 0; background: var(--vt-gold); border-radius: 3px; }
+.rv-fstep.rv-fbad .rv-fbar > i { background: var(--vt-bad); }
+.rv-fstep.rv-fgood .rv-fbar > i { background: var(--vt-accent); }
+@media (max-width: 640px) { .rv-fstep:not(:last-child)::after { content: "⌄"; right: 50%; top: auto; bottom: calc(-1 * var(--cds-gap-md) / 2 - 12px); transform: translateX(50%); } }
+.rv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
+.rv-card { background: var(--vt-surface); border: 1px solid var(--vt-line); border-radius: 14px; padding: clamp(16px, 2.4vw, 24px); display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; }
+.rv-card h2 { margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.rv-card h2::before, .rv-sec::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 2px; background: var(--vt-gold); transform: rotate(45deg); }
+.rv-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--vt-muted); max-width: 80ch; }
+.rv-chart { position: relative; min-height: 18rem; }
+.rv-sub { margin: 0.4rem 0 0; font-size: var(--cds-font-size-body); font-weight: 600; color: var(--color-fg); }
+.rv-obj-list { margin: 0; padding-left: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: 0.9rem 2rem; }
+.rv-obj { min-width: 0; padding-left: 0.2rem; }
+.rv-obj::marker { color: var(--vt-gold); font-weight: 600; }
+.rv-obj-head { display: flex; flex-wrap: wrap; gap: 0.15rem 0.6rem; align-items: baseline; }
+.rv-obj-meta { font-size: var(--cds-font-size-caption); color: var(--vt-muted); }
+.rv-obj-q { display: block; margin-top: 0.25rem; font-size: var(--cds-font-size-caption); color: var(--vt-muted); font-style: italic; quotes: '“' '”'; }
+
+.rv-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: 8px; box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); max-width: 16rem; }
+.rv-tip-head { color: var(--cds-text-secondary); }
+.rv-alerts { display: grid; gap: var(--cds-gap-sm); }
+.rv-table-wrap { overflow: auto; max-height: 32rem; border-top: 1px solid var(--vt-line); }
+.rv-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.rv-table th { position: sticky; top: 0; background: var(--vt-surface); text-align: left; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; font-weight: 500; color: var(--vt-muted); padding: 8px 10px; border-bottom: 1px solid var(--vt-line); }
+.rv-table td { padding: 9px 10px; border-bottom: 1px solid var(--vt-line); vertical-align: top; }
+.rv-table tbody tr:hover td { background: var(--vt-accent-soft); }
+.rv-table td.rv-quote { font-size: var(--cds-font-size-body); min-width: 16rem; }
+.rv-sev { display: inline-block; padding: 1px 9px; border-radius: 999px; font-weight: 600; font-size: 12px; white-space: nowrap; background: color-mix(in srgb, currentColor 12%, transparent); }
+.rv-sev-critico { color: var(--vt-bad); }
+.rv-sev-atencao { color: var(--vt-warn); }
+.rv-sev-oportunidade { color: var(--vt-accent); }
+.rv-out-comprou { color: var(--vt-ok); }
+.rv-out-perdido { color: var(--vt-bad); }
+.rv-out-aberto { color: var(--vt-warn); }
+.rv-period { margin: 0; font-size: var(--cds-font-size-caption); color: var(--vt-muted); font-variant-numeric: tabular-nums; }
+.rv-period strong { color: var(--vt-fg); font-weight: 600; }
+.rv-hero .rv-period { color: var(--vt-hero-muted); }
+.rv-hero .rv-period strong { color: var(--vt-gold); }
+.rv-tabs { display: flex; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--vt-line); }
+.rv-tab { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: var(--cds-pad-sm) var(--cds-pad-md); color: var(--vt-muted); cursor: pointer; display: inline-flex; gap: var(--cds-gap-xs); align-items: baseline; }
+.rv-tab[aria-selected="true"] { color: var(--vt-fg); border-bottom-color: var(--vt-gold); font-weight: 600; }
+.rv-tab-n { font-size: var(--cds-font-size-caption); color: var(--vt-muted); font-variant-numeric: tabular-nums; font-weight: 400; }
+.rv-panel { display: grid; gap: var(--cds-gap-md); }
+.rv-search { font: inherit; font-size: var(--cds-font-size-caption); padding: 6px 10px; border: 1px solid var(--vt-line); border-radius: 8px; background: var(--vt-bg); color: var(--vt-fg); min-width: 0; flex: 1 1 12rem; }
+.rv-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--vt-muted); }
+.rv-legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+.rv-sw { width: .625rem; height: .625rem; border-radius: 2px; display: inline-block; }
+.rv-foot { font-size: var(--cds-font-size-caption); color: var(--vt-muted); max-width: 70ch; margin: 0; }
+.rv-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); color: var(--vt-muted); font-size: var(--cds-font-size-caption); min-height: inherit; }
+.rv-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--vt-bad); }
+.rv-sec { margin: 0; font-family: var(--vt-display); font-weight: 500; font-size: clamp(22px, 3vw, 28px); display: flex; align-items: center; gap: 12px; }
+.rv-day { border-color: color-mix(in srgb, var(--vt-gold) 55%, var(--vt-line)); }
+.rv-inner { background: var(--vt-bg); }
+.rv-inner h3 { margin: 0; font-size: var(--cds-font-size-body); font-weight: 600; color: var(--vt-accent); }
+.rv-chart-sm { min-height: 12rem; }
+.rv-err-v { color: var(--vt-bad); }
+.rv-err-p { color: var(--vt-warn); }
+.rv-conv { display: flex; align-items: center; gap: 8px; }
+.rv-conv-trk { flex: 1 1 auto; height: 8px; border-radius: 4px; background: var(--vt-accent-soft); overflow: hidden; min-width: 3rem; }
+.rv-conv-bar { display: block; height: 100%; background: var(--vt-gold); border-radius: 4px; }
+.rv-conv-n { font-variant-numeric: tabular-nums; min-width: 2.6em; }
+.rv-det summary { cursor: pointer; color: var(--vt-accent); font-weight: 600; font-size: var(--cds-font-size-caption); padding: 4px 0; }
+.rv-det[open] { display: grid; gap: var(--cds-gap-sm); }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+@media (max-width: 40rem) { .rv-hide-narrow { display: none; } }
+</style>
+
+<div class="rv" id="radar">
+  <header class="rv-head rv-hero" id="topo">
+    <span class="rv-eyebrow">Grupo Virtus · Receitas · atualizado todo dia às 7h</span>
+    <h1 class="rv-title">Radar de Conversas Virtus</h1>
+    <p class="rv-take">Escolha o período (último dia, outro dia, semana, mês ou tudo): o painel inteiro muda junto. Só entra quem levantou a mão ou conversou de verdade: respostas automáticas e cliques de "encerrar contato" ficam de fora.</p>
+    <div class="rv-bar" role="group" aria-label="Produto">
+      <button class="rv-chip" type="button" data-prod="Todos" aria-pressed="true">Todos</button>
+      <button class="rv-chip" type="button" data-prod="ISD" aria-pressed="false">ISD</button>
+      <button class="rv-chip" type="button" data-prod="Protagon" aria-pressed="false">Protagon</button>
+    </div>
+    <div class="rv-bar" role="group" aria-label="Período" id="g-pmodo">
+      <button class="rv-chip" type="button" data-pmodo="U" aria-pressed="true">Último dia</button>
+      <button class="rv-chip" type="button" data-pmodo="D" aria-pressed="false">Outro dia</button>
+      <button class="rv-chip" type="button" data-pmodo="S" aria-pressed="false">Semana</button>
+      <button class="rv-chip" type="button" data-pmodo="M" aria-pressed="false">Mês</button>
+      <button class="rv-chip" type="button" data-pmodo="T" aria-pressed="false">Tudo</button>
+    </div>
+    <div class="rv-bar" role="group" aria-label="Escolha o período" id="g-per" hidden></div>
+    <p class="rv-period">Mostrando: <strong id="p-atual">—</strong> · vale para o painel inteiro</p>
+  </header>
+
+  <section class="rv-card rv-day" id="dia">
+    <h2 class="rv-sec" id="h-dia">Correção do dia</h2>
+    <p class="rv-note">Todo lead de ISD e Protagon que escreveu no dia tem a mensagem lida e classificada: <strong>quer conversar</strong> (pediu preço, link, condição, falar com alguém, fez pergunta ou disse que quer), <strong>só reengajou</strong> ("To aqui!", "Sim, fui eu") ou <strong>saiu</strong> ("Encerrar contato", "Não tenho interesse"). Também ficam fora da conta quem clicou num botão e a automação já entregou o que pediu (link da aula, link de compra) mensagens que não pedem resposta (recusa, "eu aviso", só confirmação, resposta a pergunta da automação como "Primeira experiência" ou "É uma prioridade") e pedidos de suporte de quem já é aluno ou ganhou ingresso. Quem ficou "sem resposta" é reconferido no Clint a cada dia, com as mensagens do time até a hora da conferência: se o vendedor respondeu depois, passa para a faixa de espera real. Tempo de resposta e cobrança valem só para quem quer conversar. A espera conta só o horário de atendimento (seg a sáb, 8h às 20h). Erro de processo = lead sem vendedor responsável ou atendido só pela IA; o resto é erro de vendedor. Método novo desde 23/out.</p>
+    <section class="rv-funil" aria-label="Funil do atendimento">
+      <div class="rv-fstep"><span class="rv-kpi-label">Leads totais</span><span class="rv-kpi-value" id="kd-leads">—</span><span class="rv-fbar"><i id="kb-leads"></i></span><span class="rv-kpi-note" id="kd-leads-note">leads que entraram no Clint no período</span></div>
+      <div class="rv-fstep"><span class="rv-kpi-label">Levantada de mão</span><span class="rv-kpi-value" id="kd-lev" data-source="dia_leads" data-field="levantadas">—</span><span class="rv-fbar"><i id="kb-lev"></i></span><span class="rv-kpi-note" id="kd-fora">—</span></div>
+      <div class="rv-fstep rv-frate"><span class="rv-kpi-label">Taxa de conexão</span><span class="rv-kpi-value" id="kd-conx">—</span><span class="rv-kpi-note" id="kd-conx-note">levantadas de mão ÷ leads totais (inclui lead antigo que voltou a escrever)</span></div>
+      <div class="rv-fstep rv-fgood"><span class="rv-kpi-label">Respondidas em até 15 min</span><span class="rv-kpi-value" id="kd-15" data-source="dia_kpis" data-field="pct_ate15">—</span><span class="rv-fbar"><i id="kb-15"></i></span><span class="rv-kpi-note" id="kd-15-note">—</span></div>
+      <div class="rv-fstep rv-fbad"><span class="rv-kpi-label">Ficaram sem resposta</span><span class="rv-kpi-value" id="kd-sem" data-source="dia_kpis" data-field="sem_resposta">—</span><span class="rv-fbar"><i id="kb-sem"></i></span><span class="rv-kpi-note" id="kd-sem-note">—</span></div>
+    </section>
+    <div class="rv-grid">
+      <section class="rv-card rv-inner" id="faixas">
+        <h3>Quanto o lead esperou</h3>
+        <p class="rv-note">Quem pediu atendimento por escrito no WhatsApp no período (leitura das mensagens, desde 23/10), pelo tempo até a 1ª mensagem de um vendedor (horário útil: seg a sáb, 8h às 20h). <strong>Sem resposta</strong> = nenhum vendedor escreveu para o contato até a última conferência no Clint; <strong>Só a IA respondeu</strong> = só o agente de IA falou; <strong>Aguardando</strong> = escreveu há menos de 15 min úteis.</p>
+        <p class="rv-period rv-recorte" data-base="maos">—</p>
+        <div class="rv-chart rv-chart-sm" id="c-faixas" data-source="dia_faixas"></div>
+      </section>
+      <section class="rv-card rv-inner" id="dvend">
+        <h3>Por vendedor</h3>
+        <p class="rv-note">Por vendedor responsável, pela leitura das mensagens (desde 23/10): quantos pediram atendimento (pedido escrito no WhatsApp; não é a levantada de mão do funil, que segue a etapa do negócio), quantos foram respondidos em até 15 min, a espera mediana e quantos ficaram sem resposta. "Sem proposta" e "Lidas" vêm das conversas lidas (com 3 ou mais mensagens) do mesmo período.</p>
+        <p class="rv-period rv-recorte" data-base="maos">—</p>
+        <div class="rv-table-wrap">
+          <table class="rv-table" id="t-dvend" data-source="dia_vendedor" data-row-key="id">
+            <thead><tr><th data-field="vendedor">Vendedor</th><th data-field="levantadas">Pedidos de atendimento</th><th data-field="pct_ate15">Até 15 min</th><th data-field="mediana_espera">Espera</th><th data-field="sem_resposta">Sem resposta</th><th data-field="sem_proposta" class="rv-hide-narrow">Sem proposta</th><th data-field="lidas" class="rv-hide-narrow">Lidas</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <section class="rv-card rv-inner" id="casos">
+      <h3>Casos para corrigir</h3>
+      <p class="rv-note">Cada lead que pediu atendimento e ficou sem resposta ou esperou mais de 1 h útil, um por linha, piores primeiro. Erro de processo vai para quem cuida das automações; erro de vendedor, para o vendedor da linha.</p>
+      <p class="rv-period rv-recorte" data-base="maos">—</p>
+      <div class="rv-bar" role="group" aria-label="Tipo de erro" id="g-tipo-erro">
+        <button class="rv-chip" type="button" data-terro="" aria-pressed="true">Todos</button>
+        <button class="rv-chip" type="button" data-terro="Vendedor" aria-pressed="false">Vendedor</button>
+        <button class="rv-chip" type="button" data-terro="Processo" aria-pressed="false">Processo</button>
+        <button class="rv-chip" type="button" data-terro="Em dúvida" aria-pressed="false">Em dúvida</button>
+      </div>
+      <div class="rv-table-wrap">
+        <table class="rv-table" id="t-casos" data-source="dia_casos" data-row-key="id">
+          <thead><tr><th data-field="hora">Hora</th><th data-field="lead">Lead</th><th data-field="email">E-mail</th><th data-field="produto">Produto</th><th data-field="vendedor">Vendedor</th><th data-field="tipo">Erro de</th><th data-field="problema">Problema</th><th data-field="espera">Espera</th><th data-field="msg">O que o lead mandou</th><th data-field="detalhe" class="rv-hide-narrow">Contexto da conversa</th><th data-field="revisao" class="rv-hide-narrow">Revisão</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <section class="rv-card" id="origens">
+    <h2 class="rv-sec" id="h-origens">Leads e vendas por origem</h2>
+    <p class="rv-note">Leads que entraram no período e vendas do comercial feitas no período, cada venda na origem por onde o comprador entrou no Clint. Começa em 1º/out; dados até ontem.</p>
+    <section class="rv-funil" aria-label="Funil do comercial">
+      <div class="rv-fstep"><span class="rv-kpi-label">Leads totais</span><span class="rv-kpi-value" id="ko-leads" data-source="origens_kpis" data-field="leads">—</span><span class="rv-kpi-note">leads que entraram no Clint no período</span></div>
+      <div class="rv-fstep"><span class="rv-kpi-label">Vendas do comercial</span><span class="rv-kpi-value" id="ko-vend" data-source="origens_kpis" data-field="vendas">—</span><span class="rv-kpi-note">planilha do comercial</span></div>
+      <div class="rv-fstep"><span class="rv-kpi-label">Faturamento do comercial</span><span class="rv-kpi-value" id="ko-fat" data-source="origens_kpis" data-field="faturamento">—</span><span class="rv-kpi-note" id="ko-ticket">—</span></div>
+      <div class="rv-fstep rv-frate"><span class="rv-kpi-label">Conversão do comercial</span><span class="rv-kpi-value" id="ko-conv" data-source="origens_kpis" data-field="conversao">—</span><span class="rv-kpi-note">vendas ÷ leads totais</span></div>
+    </section>
+    <h3 class="rv-sub">De onde veio o tráfego</h3>
+    <p class="rv-note">Tipo de tráfego que trouxe cada lead (pago, social, disparo para a base, WhatsApp, indicação) e as vendas dos compradores que vieram por ele.</p>
+    <div class="rv-table-wrap">
+      <table class="rv-table" id="t-trafego" data-source="origens_trafego" data-row-key="id">
+        <thead><tr><th data-field="trafego">Tráfego</th><th data-field="leads">Leads</th><th data-field="pct_leads">% dos leads</th><th data-field="vendas">Vendas</th><th data-field="faturamento">Faturamento</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="rv-note" id="n-regra" data-source="origens_regra">—</p>
+    <h3 class="rv-sub">Por origem (campo Ação)</h3>
+    <p class="rv-note">As 11 origens do time, com leads, vendas, faturamento e conversão. O que não se encaixa em nenhuma depois de todas as checagens fica em "Origem não identificada".</p>
+    <div class="rv-table-wrap">
+      <table class="rv-table" id="t-origens" data-source="origens_canal" data-row-key="id">
+        <thead><tr><th data-field="canal">Origem</th><th data-field="leads">Leads</th><th data-field="vendas">Vendas</th><th data-field="faturamento">Faturamento</th><th data-field="conversao">Conversão</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <details class="rv-det" id="det-acoes">
+      <summary>Ver as campanhas e ações dentro de cada origem</summary>
+      <div class="rv-table-wrap">
+        <table class="rv-table" id="t-acoes" data-source="origens_acoes" data-row-key="id">
+          <thead><tr><th data-field="canal">Origem</th><th data-field="acao">Campanha ou ação</th><th data-field="leads">Leads</th><th data-field="vendas">Vendas</th><th data-field="faturamento">Faturamento</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+    <details class="rv-det" id="det-semorig">
+      <summary id="s-semorig">Vendas sem origem identificada: lista para conferir</summary>
+      <p class="rv-note">Uma linha por venda do período que ficou em "Origem não identificada", com o e-mail do comprador para procurar no Clint e o motivo. Venda que não chegou ao Clint não tem e-mail: procure pelo código HP na Hotmart.</p>
+      <div class="rv-table-wrap">
+        <table class="rv-table" id="t-semorig" data-source="vendas_sem_origem" data-row-key="id">
+          <thead><tr><th data-field="dia">Data</th><th data-field="lead">Comprador</th><th data-field="email">E-mail</th><th data-field="produto">Produto</th><th data-field="valor">Valor</th><th data-field="vendedor">Vendedor</th><th data-field="cod" class="rv-hide-narrow">Código HP</th><th data-field="motivo">Por que ficou sem origem</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+    <p class="rv-note">Vendas, faturamento e vendedor vêm da planilha do comercial (a mesma do dash do comercial; produto pela coluna "Produto": IMERSÃO = ISD, PROTAGON = Protagon; Coliseu e 5 Liberdades ficam fora). A origem de cada venda vem do Clint, achando o comprador pelo código da transação (HP…); O comprador pode ter entrado antes do período; por isso uma origem pode ter mais vendas que leads, e aí a conversão aparece como —. A origem do lead vem do campo "Ação" do contato no Clint (regra do time); o campo "Origem" do negócio e a campanha do anúncio (utm_campaign) servem de conferência e de reserva quando a Ação está vazia ou é de outro produto. A Ação é a última do contato: de out/26 para trás ela foi lida hoje, e daqui para frente a rotina lê no dia em que o lead entra. Lead sem origem de tráfego é procurado na UTM ou no rastreio da compra de qualquer outro negócio do mesmo contato (qualquer funil, o mais recente até o dia); se ainda não houver nada e o contato escreveu no WhatsApp, entra como "WhatsApp (chamou direto)". Venda: Ação/Origem do lead do comprador → rastreio da própria compra (sck) → UTM de outro negócio do contato → 1ª conversa no WhatsApp aberta pelo próprio contato. Tags não entram. O dash usa só as 11 origens do time; disparo não é origem (vale a origem em que o contato já estava). Ordem de checagem: (1) campo Ação do contato; (2) Origem e campanha do anúncio (utm_campaign) do próprio negócio, que também servem de conferência da Ação; (3) UTM, campanha ou rastreio de qualquer outro negócio do contato; (4) conversa no WhatsApp aberta pelo próprio contato. O que não se encaixa em nenhuma das 11 origens depois disso entra como "Origem não identificada" (ex.: negócio criado à mão sem Ação, lead criado por disparo sem nenhuma outra origem, código da venda que não chegou ao Clint). "Não identificado" = nenhum negócio do contato tem campanha, origem paga ou social registrada no Clint.</p>
+  </section>
+
+  <header class="rv-head" id="periodo">
+    <h2 class="rv-sec">O que as conversas mostram</h2>
+    <p class="rv-period">Base acumulada: <strong id="p-range" data-source="periodo" data-field="intervalo">—</strong> · <span id="p-n" data-source="periodo" data-field="conversas">—</span> conversas lidas no Clint (leads com 3 ou mais mensagens)</p>
+  </header>
+
+  <section class="rv-card" id="alertas">
+    <h2>Alertas da semana</h2>
+    <p class="rv-note">O que as conversas mostram que precisa de decisão. Críticos primeiro.</p>
+    <div class="rv-table-wrap">
+      <table class="rv-table" id="t-alertas" data-source="alertas" data-row-key="id">
+        <thead><tr><th data-field="severidade">Nível</th><th data-field="titulo">Alerta</th><th data-field="detalhe">O que aconteceu</th><th data-field="dono" class="rv-hide-narrow">Quem resolve</th><th data-field="produto" class="rv-hide-narrow">Produto</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="rv-card" id="base">
+    <h2>Pedidos de atendimento, por semana</h2>
+    <p class="rv-note">Leads que escreveram querendo conversar ou comprar e como o time respondeu, semana a semana. Espera em horário útil. Começa em 23/out (método novo).</p>
+    <div class="rv-table-wrap">
+      <table class="rv-table" id="t-base" data-source="maos_semana" data-row-key="id">
+        <thead><tr><th data-field="semana">Semana</th><th data-field="levantadas">Pedidos de atendimento</th><th data-field="pct_ate15">Até 15 min</th><th data-field="mediana_espera">Espera mediana</th><th data-field="sem_resposta">Sem resposta</th><th data-field="sem_dono" class="rv-hide-narrow">Sem dono</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="rv-tabs" role="tablist" aria-label="Grupo de leads">
+    <button class="rv-tab" role="tab" type="button" id="tab-c" data-aba="Compraram" aria-selected="false" aria-controls="painel">Compraram <span class="rv-tab-n" id="n-c" data-source="kpis" data-field="conversas">—</span></button>
+    <button class="rv-tab" role="tab" type="button" id="tab-n" data-aba="Não compraram" aria-selected="true" aria-controls="painel">Não compraram <span class="rv-tab-n" id="n-n" data-source="kpis" data-field="conversas">—</span></button>
+  </div>
+
+  <div class="rv-panel" id="painel" role="tabpanel" aria-labelledby="tab-c">
+    <section class="rv-kpis" id="numeros" aria-label="Números do grupo">
+      <div class="rv-kpi"><span class="rv-kpi-label">Conversas</span><span class="rv-kpi-value dash-skeleton" id="k-conv" data-source="kpis" data-field="conversas">—</span><span class="rv-kpi-note" id="k-conv-note">conversas de verdade lidas no grupo e produto escolhidos</span></div>
+      <div class="rv-kpi"><span class="rv-kpi-label">Horas até o 1º vendedor (conversas lidas)</span><span class="rv-kpi-value dash-skeleton" id="k-horas" data-source="kpis" data-field="mediana_horas">—</span><span class="rv-kpi-note">mediana, da 1ª mensagem do lead</span></div>
+      <div class="rv-kpi"><span class="rv-kpi-label" id="k-top-label">Caminho mais comum</span><span class="rv-kpi-value dash-skeleton" id="k-top" data-source="kpis" data-field="pct_top_caminho">—</span><span class="rv-kpi-note" id="k-top-note" data-source="kpis" data-field="top_caminho">—</span></div>
+      <div class="rv-kpi"><span class="rv-kpi-label">Pediram para levar alguém</span><span class="rv-kpi-value dash-skeleton" id="k-dupla" data-source="kpis" data-field="pct_dupla">—</span><span class="rv-kpi-note">cônjuge, sócio, filho ou amigo</span></div>
+      <div class="rv-kpi"><span class="rv-kpi-label">Conversas com pedido sem resposta</span><span class="rv-kpi-value dash-skeleton" id="k-sem" data-source="kpis" data-field="pct_sem_resposta">—</span><span class="rv-kpi-note">% das conversas lidas em que o lead pediu algo e o time não respondeu; o card do atendimento conta pedidos, não conversas</span></div>
+    </section>
+
+    <div class="rv-grid">
+      <section class="rv-card" id="caminhos">
+        <h2 id="h-caminhos">Como compraram</h2>
+        <p class="rv-note" id="d-caminhos">Quem conduziu a compra: vendedor, aula ao vivo, automação ou o próprio lead.</p>
+        <div class="rv-chart" id="c-caminhos" data-source="caminhos"></div>
+      </section>
+      <section class="rv-card" id="objecoes">
+        <h2>Objeções e dúvidas</h2>
+        <p class="rv-note" id="d-objecoes">Quantas vezes cada tipo apareceu nas conversas deste grupo.</p>
+        <p class="rv-period rv-recorte" data-base="conv">—</p>
+        <div class="rv-chart" id="c-objecoes" data-source="objecoes_por_categoria"></div>
+      </section>
+    </div>
+
+    <section class="rv-card" id="objecoes-top">
+      <h2>As 15 objeções mais comuns, em palavras</h2>
+      <p class="rv-note" id="d-objecoes-top">O que está por trás de cada tipo do gráfico acima ("Preço", "Data", "Confiança"…), com frases tiradas das conversas. Conta conversas diferentes, não mensagens.</p>
+      <ol class="rv-obj-list" id="l-objecoes-top" data-source="objecoes_top" aria-live="polite"></ol>
+    </section>
+
+    <section class="rv-card" id="frases">
+      <h2>Frases para copy</h2>
+      <p class="rv-note">Palavras reais de leads e vendedores deste grupo, prontas para criativo, página ou script.</p>
+      <div class="rv-bar">
+        <input class="rv-search" id="q-frases" type="search" placeholder="Buscar frase" aria-label="Buscar frase">
+        <div class="rv-bar" role="group" aria-label="Tipo de frase" id="g-tipo">
+          <button class="rv-chip" type="button" data-tipo="" aria-pressed="true">Todas</button>
+          <button class="rv-chip" type="button" data-tipo="Dor" aria-pressed="false">Dor</button>
+          <button class="rv-chip" type="button" data-tipo="Desejo" aria-pressed="false">Desejo</button>
+          <button class="rv-chip" type="button" data-tipo="Objeção" aria-pressed="false">Objeção</button>
+          <button class="rv-chip" type="button" data-tipo="Prova" aria-pressed="false">Prova</button>
+          <button class="rv-chip" type="button" data-tipo="Fala do vendedor" aria-pressed="false">Fala do vendedor</button>
+        </div>
+      </div>
+      <div class="rv-table-wrap">
+        <table class="rv-table" id="t-frases" data-source="frases" data-row-key="id">
+          <thead><tr><th data-field="tipo">Tipo</th><th data-field="frase">Frase</th><th data-field="quem" class="rv-hide-narrow">Quem</th><th data-field="uso">Usar em</th><th data-field="produto" class="rv-hide-narrow">Produto</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="rv-card" id="conversas">
+      <h2>Conversas lidas</h2>
+      <p class="rv-note" id="d-conversas">Uma linha por conversa: quem era, o que queria, o que travou e o que fez comprar.</p>
+      <p class="rv-period rv-recorte" data-base="conv">—</p>
+      <div class="rv-table-wrap">
+        <table class="rv-table" id="t-conversas" data-source="conversas" data-row-key="id">
+          <thead><tr><th data-field="data">Data</th><th data-field="lead">Lead</th><th data-field="email">E-mail</th><th data-field="produto">Produto</th><th data-field="vendedor">Vendedor</th><th data-field="praca" class="rv-hide-narrow">Praça</th><th data-field="desfecho">Situação</th><th data-field="perfil" class="rv-hide-narrow">Perfil</th><th data-field="desejo" class="rv-hide-narrow">O que buscava</th><th data-field="objecao_principal">O que travou</th><th data-field="caminho">Caminho</th><th id="th-final" data-field="o_que_fechou">O que fez comprar</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <p class="rv-foot" id="rv-foot">Base: Clint, ISD e Protagon, a partir de 23/out/2026 (todas as seções usam os mesmos dias). Todo lead que escreveu no dia tem a mensagem lida e classificada; as conversas de quem mandou 3 ou mais mensagens são lidas por inteiro (perfil, desejo, objeções, caminho). Todo caso que entra em "Casos para corrigir" passou por uma 2ª leitura independente, que abre todos os chats do contato e o histórico do Clint (ligações e troca de responsável); a coluna Revisão mostra o resultado. Áudios não são transcritos. Ligação que não foi registrada no Clint não aparece.</p>
+</div>
+
+<script>
+const ABAS = ['Compraram', 'Não compraram'];
+const PRODS = ['Todos', 'ISD', 'Protagon'];
+const abaDe = (d) => (d === 'Comprou' ? 'Compraram' : 'Não compraram');
+// Período: 'D:AAAA-MM-DD' (um dia, últimos 7), 'S:<semana>' (seg a dom), 'M:AAAA-MM' (mês), 'Tudo'.
+const periodosDe = (rows, campo) => {
+  const dias = [...new Set(rows.map((r) => r[campo]).filter(Boolean))].sort().reverse().slice(0, 7).map((d) => 'D:' + d);
+  const sems = [...new Set(rows.map((r) => r.semana_ini + '|' + r.semana))].sort().reverse().map((x) => 'S:' + x.split('|')[1]);
+  const meses = [...new Set(rows.map((r) => (r[campo] || '').slice(0, 7)).filter(Boolean))].sort().reverse().map((m) => 'M:' + m);
+  return dias.concat(sems, meses, ['Tudo']);
+};
+const noPer = (r, p, campo) => p === 'Tudo' || (p.startsWith('D:') ? r[campo] === p.slice(2) : p.startsWith('S:') ? r.semana === p.slice(2) : (r[campo] || '').slice(0, 7) === p.slice(2));
+const naProd = (r, p) => p === 'Todos' || r.produto === p;
+
+const DIA_OK = ['Até 5 min', '5 a 15 min'];
+const SEM_RESP = (v) => ['Sem dono', 'Sem responsável confirmado', 'Responsável não identificado'].includes(v);
+const FAIXAS = ['Até 5 min', '5 a 15 min', '15 a 60 min', '1 a 4 h', 'Mais de 4 h', 'Só a IA respondeu', 'Aguardando', 'Sem resposta'];
+const MAO = (x) => x.tipo === 'Quer conversar';
+const medDe = (a) => { const v = a.filter((x) => typeof x === 'number').sort((x, y) => x - y); return v.length ? v[Math.floor((v.length - 1) / 2)] : null; };
+
+dash.calc('dia_kpis', {
+  inputs: ['maos'],
+  title: 'Números do atendimento',
+  description: 'Para cada período (últimos 7 dias, semanas, meses, tudo) e produto: quem quis conversar (mensagem lida e classificada), % respondidas em até 15 min úteis (inclui quem já estava em conversa), mediana de espera, sem resposta, sem dono e fora do horário.',
+  fn: (maos) => {
+    const out = [];
+    periodosDe(maos, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
+      const todos = maos.filter((x) => noPer(x, periodo, 'dia') && naProd(x, produto));
+      const r = todos.filter(MAO); const n = r.length;
+      out.push({ id: periodo + '|' + produto, periodo, produto, levantadas: n, reengajaram: todos.filter((x) => x.tipo === 'Só reengajou').length, sairam: todos.filter((x) => x.tipo === 'Saiu').length, automacao: todos.filter((x) => x.tipo === 'Automação atendeu').length, nao_pedia: todos.filter((x) => x.tipo === 'Não pedia resposta').length, suporte: todos.filter((x) => x.tipo === 'Suporte').length, escreveram: todos.length,
+        pct_ate15: n ? r.filter((x) => DIA_OK.includes(x.situacao)).length / n : null,
+        mediana_espera: medDe(r.map((x) => x.espera_min)),
+        sem_resposta: r.filter((x) => x.situacao === 'Sem resposta').length,
+        sem_dono: r.filter((x) => x.situacao === 'Sem resposta' && SEM_RESP(x.vendedor)).length,
+        fora_horario: r.filter((x) => x.fora_horario === 'Sim').length });
+    }));
+    return out;
+  },
+});
+
+dash.calc('dia_faixas', {
+  inputs: ['maos'],
+  title: 'Espera por faixa',
+  description: 'Quem quis conversar em cada período e produto, por faixa de tempo até a 1ª mensagem de um vendedor (horário útil).',
+  fn: (maos) => {
+    const out = [];
+    periodosDe(maos, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
+      const r = maos.filter((x) => noPer(x, periodo, 'dia') && naProd(x, produto) && MAO(x));
+      FAIXAS.forEach((faixa, i) => out.push({ periodo, produto, rotulo: faixa, ordem: i, total: r.filter((x) => x.situacao === faixa).length }));
+    }));
+    return out;
+  },
+});
+
+dash.calc('dia_vendedor', {
+  inputs: ['maos', 'conversas'],
+  title: 'Vendedores no atendimento',
+  description: 'Por período, produto e vendedor: quem quis conversar (mensagem lida e classificada), % em até 15 min, mediana de espera, sem resposta; e, das conversas lidas no período, quantas e quantas nunca receberam proposta.',
+  fn: (maos, conversas) => {
+    const out = [];
+    periodosDe(maos, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
+      const m = maos.filter((x) => noPer(x, periodo, 'dia') && naProd(x, produto) && MAO(x));
+      const c = conversas.filter((x) => noPer(x, periodo, 'data') && naProd(x, produto));
+      [...new Set(m.map((x) => x.vendedor).concat(c.map((x) => x.vendedor)))].forEach((vendedor) => {
+        const mv = m.filter((x) => x.vendedor === vendedor); const cv = c.filter((x) => x.vendedor === vendedor); const n = mv.length;
+        out.push({ id: periodo + '|' + produto + '|' + vendedor, periodo, produto, vendedor, levantadas: n,
+          pct_ate15: n ? mv.filter((x) => DIA_OK.includes(x.situacao)).length / n : null,
+          mediana_espera: medDe(mv.map((x) => x.espera_min)),
+          sem_resposta: mv.filter((x) => x.situacao === 'Sem resposta').length,
+          lidas: cv.length,
+          sem_proposta: cv.filter((x) => x.caminho === 'Nunca recebeu proposta').length });
+      });
+    }));
+    return out;
+  },
+});
+
+dash.calc('dia_casos', {
+  inputs: ['maos', 'conversas'],
+  title: 'Casos para corrigir',
+  description: 'Por dia: quem quis conversar (mensagem lida e classificada) sem resposta ou com mais de 1 h de espera útil, (só quem escreveu querendo conversar, pela leitura da mensagem), e conversas lidas que nunca receberam proposta, ficaram sem resposta do time ou eram de comprador tratado como lead. Classifica em erro de processo (sem dono, comprador na régua de venda) ou de vendedor.',
+  fn: (maos, conversas) => {
+    const out = []; const byId = {}; conversas.forEach((c) => { byId[c.id] = c; });
+    const det = (c) => (c ? [c.desejo, c.objecao_principal !== 'Nenhuma' ? 'trava: ' + c.objecao_principal : ''].filter(Boolean).join(' · ') : '');
+    const usados = new Set();
+    maos.forEach((x) => {
+      let problema = null; let peso = 0;
+      if (!MAO(x)) return;
+      if (x.situacao === 'Sem resposta') { problema = 'Quis conversar e ninguém respondeu'; peso = 4; }
+      else if (x.situacao === 'Só a IA respondeu') { problema = 'Só o agente de IA respondeu, nenhum vendedor'; peso = 2; }
+      else if (x.situacao === 'Mais de 4 h') { problema = 'Respondido depois de 4 h úteis'; peso = 2; }
+      else if (x.situacao === '1 a 4 h') { problema = 'Respondido entre 1 e 4 h úteis'; peso = 1; }
+      if (!problema) return;
+      const c = byId[x.conversa]; usados.add(x.conversa + '|' + x.dia);
+      out.push({ id: x.id, dia: x.dia, semana: x.semana, produto: x.produto, hora: x.hora, vendedor: x.vendedor + (x.dono_hoje ? ' (dono hoje: ' + x.dono_hoje + ')' : '') + (x.por_ligacao === 'Sim' ? ' · ligou' : ''),
+        tipo: ['Sem dono', 'Responsável não identificado', 'Sem responsável confirmado', 'Agente de IA'].includes(x.vendedor) || x.situacao === 'Só a IA respondeu' ? 'Processo' : (x.revisao && x.revisao.startsWith('Em dúvida') ? 'Em dúvida' : 'Vendedor'), msg: x.msg || '', lead: x.lead || '', email: x.email || '', revisao: x.revisao || 'Sem 2ª leitura', problema: x.vendedor === 'Sem dono' && peso === 4 ? 'Quis conversar e está sem vendedor' : problema,
+        espera: x.espera_min, peso, detalhe: det(c), codigo: x.id });
+    });
+    const regra = { 'Nunca recebeu proposta': ['Vendedor', 'Conversou e não apresentou oferta', 2], 'Ficou sem resposta do time': ['Vendedor', 'Pediu algo e ficou sem resposta', 3], 'Comprador tratado como lead': ['Processo', 'Comprador ainda na régua de venda', 1] };
+    conversas.filter((c) => regra[c.caminho]).forEach((c) => {
+      if (usados.has(c.id + '|' + c.data)) return;
+      const [tipo, problema, peso] = regra[c.caminho];
+      if (c.revisao && c.revisao.startsWith('Em dúvida')) { out.push({ id: c.id + '-' + c.data, dia: c.data, semana: c.semana, produto: c.produto, hora: '', msg: '', lead: c.lead || '', email: c.email || '', revisao: c.revisao, vendedor: c.responsavel || c.vendedor, tipo: 'Em dúvida', problema, espera: null, peso: 0, detalhe: det(c), codigo: c.id }); return; }
+      const semDono = ['Nenhum', 'Sem dono'].includes(c.vendedor);
+      out.push({ id: c.id + '-' + c.data, dia: c.data, semana: c.semana, produto: c.produto, hora: '', msg: '', lead: c.lead || '', email: c.email || '', revisao: c.revisao || 'Sem 2ª leitura', vendedor: semDono ? 'Sem dono' : (c.responsavel || c.vendedor), tipo: semDono ? 'Processo' : tipo, problema: semDono && tipo === 'Vendedor' ? problema + ' (sem dono)' : problema, espera: null, peso, detalhe: det(c), codigo: c.id });
+    });
+    return out;
+  },
+});
+
+dash.calc('maos_semana', {
+  inputs: ['maos'],
+  title: 'Quem quis conversar, por semana',
+  description: 'Por semana (ou todas) e produto: quem quis conversar (mensagem lida e classificada), % respondidas em até 15 min úteis, mediana de espera, sem resposta e sem vendedor responsável.',
+  fn: (maos) => {
+    const sems = ['Todas'].concat([...new Set(maos.map((r) => r.semana_ini + '|' + r.semana))].sort().map((x) => x.split('|')[1]));
+    const out = [];
+    sems.forEach((semana) => PRODS.forEach((produto) => {
+      const r = maos.filter((x) => naProd(x, produto) && MAO(x) && (semana === 'Todas' || x.semana === semana)); const n = r.length;
+      out.push({ id: semana + '|' + produto, semana, produto, levantadas: n,
+        pct_ate15: n ? r.filter((x) => DIA_OK.includes(x.situacao)).length / n : null,
+        mediana_espera: medDe(r.map((x) => x.espera_min)),
+        sem_resposta: r.filter((x) => x.situacao === 'Sem resposta').length,
+        sem_dono: r.filter((x) => x.situacao === 'Sem resposta' && SEM_RESP(x.vendedor)).length });
+    }));
+    return out;
+  },
+});
+
+dash.calc('periodo', {
+  inputs: ['conversas', 'maos'],
+  title: 'Período na base',
+  description: 'Data da conversa mais antiga e mais recente da base acumulada, total de conversas e lista de períodos para o filtro (últimos 7 dias, semanas, meses, tudo).',
+  fn: (conversas, maos) => {
+    const ds = conversas.map((r) => r.data).filter(Boolean).sort();
+    const mes = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const f = (s) => { const [y, m, d] = s.split('-'); return { y, m: mes[Number(m) - 1], d: String(Number(d)) }; };
+    let intervalo = null;
+    if (ds.length) {
+      const a = f(ds[0]); const b = f(ds[ds.length - 1]);
+      intervalo = a.m === b.m && a.y === b.y ? `${a.d} a ${b.d} de ${b.m} de ${b.y}` : `${a.d} de ${a.m} a ${b.d} de ${b.m} de ${b.y}`;
+    }
+    return [{ inicio: ds[0] || null, fim: ds[ds.length - 1] || null, intervalo, conversas: conversas.length, periodos: periodosDe(maos.concat(conversas.map((r) => ({ dia: r.data, semana: r.semana, semana_ini: r.semana_ini }))), 'dia').join(';') }];
+  },
+});
+
+dash.calc('kpis', {
+  inputs: ['conversas'],
+  title: 'Números por produto, grupo e período',
+  description: 'Para cada produto, grupo (Compraram, Não compraram) e período (dia, semana, mês ou tudo): conversas, % que pediu dupla, % sem resposta, caminho mais comum e mediana de horas até o 1º vendedor.',
+  fn: (conversas) => {
+    const out = [];
+    periodosDe(conversas, 'data').forEach((periodo) => PRODS.forEach((produto) => ABAS.forEach((aba) => {
+      const c = conversas.filter((r) => naProd(r, produto) && noPer(r, periodo, 'data') && abaDe(r.desfecho) === aba);
+      const n = c.length;
+      const cont = {};
+      c.forEach((r) => { cont[r.caminho] = (cont[r.caminho] || 0) + 1; });
+      const top = Object.entries(cont).sort((a, b) => b[1] - a[1])[0];
+      const h = c.map((r) => r.horas_ate_humano).filter((v) => typeof v === 'number').sort((a, b) => a - b);
+      out.push({
+        produto, aba, periodo, conversas: n,
+        pct_dupla: n ? c.filter((r) => r.pediu_dupla === 'Sim').length / n : null,
+        pct_sem_resposta: n ? c.filter((r) => r.sem_resposta === 'Sim').length / n : null,
+        top_caminho: top ? top[0] : null,
+        pct_top_caminho: top && n ? top[1] / n : null,
+        mediana_horas: h.length ? h[Math.floor((h.length - 1) / 2)] : null,
+      });
+    })));
+    return out;
+  },
+});
+
+dash.calc('vendedores', {
+  inputs: ['conversas'],
+  title: 'Números por vendedor',
+  description: 'Por produto, grupo e período, para cada vendedor: conversas lidas, % de leads sem resposta, mediana de horas até a 1ª resposta, âncora mais usada, preço final mediano e % que pediu dupla.',
+  fn: (conversas) => {
+    const med = (a) => { const v = a.filter((x) => typeof x === 'number').sort((x, y) => x - y); return v.length ? v[Math.floor((v.length - 1) / 2)] : null; };
+    const out = [];
+    periodosDe(conversas, 'data').forEach((periodo) => PRODS.forEach((produto) => ABAS.forEach((aba) => {
+      const c = conversas.filter((r) => naProd(r, produto) && noPer(r, periodo, 'data') && abaDe(r.desfecho) === aba);
+      [...new Set(c.map((r) => r.vendedor))].forEach((vendedor) => {
+        const v = c.filter((r) => r.vendedor === vendedor); const n = v.length;
+        const anc = {}; v.forEach((r) => { if (typeof r.ancora === 'number') anc[r.ancora] = (anc[r.ancora] || 0) + 1; });
+        const topA = Object.entries(anc).sort((a, b) => b[1] - a[1])[0];
+        out.push({ id: periodo + '|' + produto + '|' + aba + '|' + vendedor, produto, aba, periodo, vendedor, conversas: n,
+          pct_sem_resposta: v.filter((r) => r.sem_resposta === 'Sim').length / n,
+          mediana_horas: med(v.map((r) => r.horas_ate_humano)),
+          ancora_comum: topA ? Number(topA[0]) : null,
+          preco_mediano: med(v.map((r) => r.preco_final)),
+          pct_dupla: v.filter((r) => r.pediu_dupla === 'Sim').length / n });
+      });
+    })));
+    return out;
+  },
+});
+
+dash.calc('caminhos', {
+  inputs: ['conversas'],
+  title: 'Caminho da conversa',
+  description: 'Quantas conversas seguiram cada caminho (quem conduziu a compra, ou onde a negociação parou), por produto, grupo e período.',
+  fn: (conversas) => {
+    const out = [];
+    periodosDe(conversas, 'data').forEach((periodo) => PRODS.forEach((produto) => ABAS.forEach((aba) => {
+      const c = conversas.filter((r) => naProd(r, produto) && noPer(r, periodo, 'data') && abaDe(r.desfecho) === aba);
+      [...new Set(c.map((r) => r.caminho))].forEach((caminho) => out.push({ produto, aba, periodo, rotulo: caminho, total: c.filter((r) => r.caminho === caminho).length }));
+    })));
+    return out;
+  },
+});
+
+dash.calc('objecoes_top', {
+  inputs: ['objecoes'],
+  title: 'As 15 objeções mais comuns',
+  description: 'Por produto, grupo e período: as 15 objeções mais frequentes em texto (subtipo dentro de cada categoria), quantas conversas diferentes trouxeram cada uma e duas frases de exemplo tiradas das conversas.',
+  fn: (objecoes) => {
+    const out = [];
+    periodosDe(objecoes, 'data').forEach((periodo) => PRODS.forEach((produto) => ABAS.forEach((aba) => {
+      const rows = objecoes.filter((r) => r.sub && r.sub !== 'Outros' && naProd(r, produto) && noPer(r, periodo, 'data') && abaDe(r.desfecho) === aba);
+      const grupos = d3.group(rows, (r) => r.sub);
+      const lista = [...grupos].map(([sub, rs]) => {
+        const cats = d3.rollups(rs, (v) => v.length, (r) => r.categoria).sort((a, b) => b[1] - a[1]);
+        const vistos = new Set();
+        const exemplos = rs.slice().sort((a, b) => (Math.abs(a.trecho.length - 70) - Math.abs(b.trecho.length - 70)) || (b.data > a.data ? 1 : -1))
+          .filter((r) => r.trecho.length >= 20 && !vistos.has(r.conversa) && vistos.add(r.conversa)).slice(0, 2).map((r) => r.trecho);
+        return { sub, categoria: cats[0][0], conversas: new Set(rs.map((r) => r.conversa)).size, mencoes: rs.length, exemplos };
+      }).sort((a, b) => b.conversas - a.conversas || b.mencoes - a.mencoes || a.sub.localeCompare(b.sub)).slice(0, 15);
+      lista.forEach((x, i) => out.push({ id: [periodo, produto, aba, i].join('|'), periodo, produto, aba, posicao: i + 1, ...x, exemplo_1: x.exemplos[0] || '', exemplo_2: x.exemplos[1] || '' }));
+    })));
+    return out.map(({ exemplos, ...r }) => r);
+  },
+});
+
+dash.calc('objecoes_por_categoria', {
+  inputs: ['objecoes'],
+  title: 'Objeções por tipo',
+  description: 'Quantas vezes cada tipo de objeção ou dúvida apareceu, por produto, grupo e período.',
+  fn: (objecoes) => {
+    const out = [];
+    periodosDe(objecoes, 'data').forEach((periodo) => PRODS.forEach((produto) => ABAS.forEach((aba) => {
+      const rows = objecoes.filter((r) => naProd(r, produto) && noPer(r, periodo, 'data') && abaDe(r.desfecho) === aba);
+      [...new Set(rows.map((r) => r.categoria))].forEach((categoria) => out.push({ produto, aba, periodo, rotulo: categoria, total: rows.filter((r) => r.categoria === categoria).length }));
+    })));
+    return out;
+  },
+});
+
+const ORDEM_CANAL = ['Formulário nativo (Meta)', 'WhatsApp (chamou direto)', 'Orgânico (redes do Wendell)', 'Meteórico (Protagon)', 'Webinário', 'Inlead · geração de demanda', 'Inlead · venda direta', 'Venda direta (página de vendas)', 'Página comercial', 'Indicação', 'Remarketing', 'Origem não identificada'];
+const recorte = (origens, periodo, produto) => {
+  // Leads que entraram no período (um por pessoa e produto) e vendas do comercial feitas no período, na origem por onde o comprador entrou.
+  const leads = new Map();
+  origens.filter((r) => r.tipo === 'lead' && noPer(r, periodo, 'dia') && naProd(r, produto)).forEach((r) => { const k = r.c + '|' + r.produto; if (!leads.has(k)) leads.set(k, r); });
+  const vendas = origens.filter((r) => r.tipo === 'venda' && noPer(r, periodo, 'dia') && naProd(r, produto));
+  return { leads: [...leads.values()], vendas };
+};
+const somaR = (vs) => Math.round(vs.reduce((s, v) => s + (v.valor || 0), 0));
+dash.calc('dia_leads', {
+  inputs: ['maos', 'origens', 'levantadas'],
+  title: 'Funil do atendimento: leads e levantada de mão',
+  description: 'Para cada período e produto: leads que entraram no Clint (um por pessoa e produto; o mesmo número do bloco Leads e vendas por origem) e, desses, quantos levantaram a mão pela régua da Sales Ops: o negócio de lead está hoje em Conexão ou em etapa posterior (ISD: Conexão, Negociação, Follow automático, Stand by, Fechado; Protagon: Conexão, Negociação, Follow up, Stand by, Compra fechada; no funil de sessão aberta do Protagon, Conexão não conta porque todo negócio nasce nela), qualquer status. Também diz se a leitura das mensagens (tempo de resposta) cobre o período.',
+  fn: (maos, origens, levantadas) => {
+    const ini = maos.map((x) => x.dia).filter(Boolean).sort()[0] || '';
+    const antes = origens.filter((r) => r.tipo === 'lead' && r.dia < ini);
+    const lv = new Set(levantadas.map((r) => r.c + '|' + r.produto + '|' + r.dia));
+    const out = [];
+    periodosDe(maos, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
+      const ls = origens.filter((r) => r.tipo === 'lead' && noPer(r, periodo, 'dia') && naProd(r, produto));
+      const pessoas = new Set(ls.map((r) => r.c + '|' + r.produto));
+      const maos_ = new Set(ls.filter((r) => lv.has(r.c + '|' + r.produto + '|' + r.dia)).map((r) => r.c + '|' + r.produto));
+      out.push({ id: periodo + '|' + produto, periodo, produto, leads: pessoas.size, levantadas: maos_.size, desde: ini, cobre: !antes.some((r) => noPer(r, periodo, 'dia')) });
+    }));
+    return out;
+  },
+});
+dash.calc('origens_kpis', {
+  inputs: ['origens'],
+  title: 'Leads e vendas por origem: totais',
+  description: 'Para cada período e produto: leads que entraram (um por pessoa e produto), vendas do comercial no período, faturamento e conversão (vendas ÷ leads).',
+  fn: (origens) => {
+    const out = [];
+    periodosDe(origens, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
+      const { leads, vendas } = recorte(origens, periodo, produto);
+      out.push({ id: periodo + '|' + produto, periodo, produto, leads: leads.length, vendas: vendas.length, faturamento: somaR(vendas), conversao: leads.length ? vendas.length / leads.length : null });
+    }));
+    return out;
+  },
+});
+dash.calc('origens_canal', {
+  inputs: ['origens'],
+  title: 'Leads e vendas por origem',
+  description: 'Para cada período, produto e origem (Forms nativo, Venda direta/Inlead, webinário…): leads que entraram, vendas do comercial creditadas à origem do comprador, faturamento e conversão (vendas ÷ leads).',
+  fn: (origens) => {
+    const out = [];
+    periodosDe(origens, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
+      const { leads, vendas } = recorte(origens, periodo, produto);
+      // as duas linhas do Inlead aparecem sempre, mesmo zeradas, para a ausência de leads ficar visível
+      const canais = new Set(['Inlead · geração de demanda', 'Inlead · venda direta', ...leads.map((r) => r.canal), ...vendas.map((v) => v.canal)]);
+      canais.forEach((canal) => {
+        const nl = leads.filter((r) => r.canal === canal).length; const vs = vendas.filter((v) => v.canal === canal);
+        const semReg = (r) => r.fonte_canal === 'sem registro (padrão)';
+        out.push({ id: periodo + '|' + produto + '|' + canal, periodo, produto, canal, ordem: ORDEM_CANAL.indexOf(canal), leads: nl, vendas: vs.length, faturamento: somaR(vs), conversao: nl && vs.length <= nl ? vs.length / nl : null,
+          leads_sem_registro: leads.filter((r) => r.canal === canal && semReg(r)).length, vendas_sem_registro: vs.filter(semReg).length });
+      });
+    }));
+    return out;
+  },
+});
+const ORDEM_TRAF = ['Tráfego pago', 'Social (orgânico)', 'Disparo (base própria)', 'WhatsApp (chamou direto)', 'Indicação', 'Não identificado'];
+dash.calc('origens_trafego', {
+  inputs: ['origens'],
+  title: 'De onde veio o tráfego',
+  description: 'Para cada período e produto: leads e vendas do comercial por tipo de tráfego (pago, social orgânico, disparo para a base, WhatsApp direto, indicação ou não identificado), com o % dos leads.',
+  fn: (origens) => {
+    const out = [];
+    periodosDe(origens, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
+      const { leads, vendas } = recorte(origens, periodo, produto);
+      ORDEM_TRAF.forEach((trafego, i) => {
+        const nl = leads.filter((r) => (r.trafego || 'Não identificado') === trafego).length; const vs = vendas.filter((v) => (v.trafego || 'Não identificado') === trafego);
+        if (!nl && !vs.length) return;
+        out.push({ id: periodo + '|' + produto + '|' + trafego, periodo, produto, trafego, ordem: i, leads: nl, pct_leads: leads.length ? nl / leads.length : null, vendas: vs.length, faturamento: somaR(vs) });
+      });
+    }));
+    return out;
+  },
+});
+dash.calc('origens_regra', {
+  inputs: ['origens'],
+  title: 'Conferência da regra de origem',
+  description: 'Para cada período e produto: % dos leads com origem pelo campo Ação, % em que a Ação bate com a Origem do negócio (quando as duas existem) e quantos tiveram o tráfego achado em outro negócio do mesmo contato.',
+  fn: (origens) => {
+    const out = [];
+    periodosDe(origens, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
+      const { leads } = recorte(origens, periodo, produto);
+      const n = leads.length; const comp = leads.filter((r) => r.confere === true || r.confere === false);
+      out.push({ id: periodo + '|' + produto, periodo, produto, leads: n,
+        pct_acao: n ? leads.filter((r) => r.fonte_canal === 'acao').length / n : null,
+        pct_confere: comp.length ? comp.filter((r) => r.confere === true).length / comp.length : null,
+        achados: leads.filter((r) => r.achado).length,
+        nao_identificado: leads.filter((r) => (r.trafego || 'Não identificado') === 'Não identificado').length });
+    }));
+    return out;
+  },
+});
+dash.calc('origens_acoes', {
+  inputs: ['origens'],
+  title: 'Ações dentro de cada origem',
+  description: 'Para cada período e produto: cada nome de ação gravado no Clint, a origem em que foi agrupado, leads, vendas do comercial e faturamento.',
+  fn: (origens) => {
+    const out = [];
+    periodosDe(origens, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
+      const { leads, vendas } = recorte(origens, periodo, produto);
+      const m = new Map();
+      const get = (r) => { const k = r.acao || '(vazio)'; if (!m.has(k)) m.set(k, { canal: r.canal, leads: 0, vendas: 0, faturamento: 0 }); return m.get(k); };
+      leads.forEach((r) => { get(r).leads += 1; }); vendas.forEach((v) => { const x = get(v); x.vendas += 1; x.faturamento += v.valor || 0; });
+      m.forEach((v, acao) => out.push({ id: periodo + '|' + produto + '|' + acao, periodo, produto, acao, canal: v.canal, leads: v.leads, vendas: v.vendas, faturamento: Math.round(v.faturamento) }));
+    }));
+    return out;
+  },
+});
+</script>
+
+<script>
+(() => {
+  const abaDe = (d) => (d === 'Comprou' ? 'Compraram' : 'Não compraram');
+  const fmtInt = (v) => (v == null || isNaN(v) ? '—' : d3.format(',')(v).replace(/,/g, '.'));
+  const fmtPct = d3.format('.0%');
+  const sevClass = { 'Crítico': 'rv-sev-critico', 'Atenção': 'rv-sev-atencao', 'Oportunidade': 'rv-sev-oportunidade' };
+  const sevOrder = { 'Crítico': 0, 'Atenção': 1, 'Oportunidade': 2 };
+  let tipoFrase = '';
+
+  const prodNow = () => dash.params().produto || 'Todos';
+  const abaNow = () => (dash.params().aba === 'Compraram' ? 'Compraram' : 'Não compraram');
+  const inProd = (r) => { const p = prodNow(); return p === 'Todos' || r.produto === p || r.produto === 'Ambos'; };
+  const inAba = (r) => abaDe(r.desfecho) === abaNow();
+  const perList = () => { const p = dash.data('periodo'); return p.status === 'ok' && p.data.length ? (p.data[0].periodos || 'Tudo').split(';') : []; };
+  const perNow = () => { const ps = perList(); const p = dash.params().per; return ps.includes(p) ? p : (ps.find((x) => x.startsWith('D:')) || 'Tudo'); };
+  const noPer = (r, p, campo) => p === 'Tudo' || (p.startsWith('D:') ? r[campo] === p.slice(2) : p.startsWith('S:') ? r.semana === p.slice(2) : (r[campo] || '').slice(0, 7) === p.slice(2));
+  const inSem = (r) => noPer(r, perNow(), 'data');
+  const where = (extra) => 'produto=' + encodeURIComponent(prodNow()) + '&aba=' + encodeURIComponent(extra || abaNow()) + '&periodo=' + encodeURIComponent(perNow());
+  const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  const perLabel = (p) => { if (p === 'Tudo') return 'Tudo'; const v = p.slice(2); if (p.startsWith('S:')) return 'Semana ' + v; if (p.startsWith('M:')) return MES[Number(v.slice(5, 7)) - 1] + '/' + v.slice(0, 4); return fmtDia(v); };
+  let perModo = '';
+
+  document.querySelectorAll('[data-prod]').forEach((b) => b.addEventListener('click', () => dash.setParams({ produto: b.dataset.prod })));
+  const tabs = [...document.querySelectorAll('[data-aba]')];
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => dash.setParams({ aba: b.dataset.aba }));
+    b.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const nx = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      nx.focus(); dash.setParams({ aba: nx.dataset.aba });
+    });
+  });
+  document.querySelectorAll('[data-tipo]').forEach((b) => b.addEventListener('click', () => { tipoFrase = b.dataset.tipo; drawFrases(); }));
+  document.getElementById('q-frases').addEventListener('input', () => drawFrases());
+
+  const fail = (el) => { el.replaceChildren(); const d = document.createElement('div'); d.className = 'rv-fail'; d.textContent = 'Failed to load'; el.appendChild(d); };
+  function fillTable(id, rows, cells, keyOf) {
+    const tb = document.querySelector('#' + id + ' tbody');
+    tb.replaceChildren(...rows.map((r) => {
+      const tr = document.createElement('tr'); tr.dataset.key = keyOf(r);
+      cells.forEach((fn) => { const td = document.createElement('td'); fn(td, r); tr.appendChild(td); });
+      return tr;
+    }));
+  }
+  const txt = (k, cls) => (td, r) => { td.textContent = r[k] ?? ''; if (cls) td.className = cls; };
+
+  function drawChrome() {
+    document.querySelectorAll('[data-prod]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.prod === prodNow())));
+    tabs.forEach((b) => { const on = b.dataset.aba === abaNow(); b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+    const comprou = abaNow() === 'Compraram';
+    document.getElementById('painel').setAttribute('aria-labelledby', comprou ? 'tab-c' : 'tab-n');
+    document.getElementById('h-caminhos').textContent = comprou ? 'Como compraram' : 'Onde a negociação parou';
+    document.getElementById('d-caminhos').textContent = comprou ? 'Quem conduziu a compra: vendedor, aula ao vivo, automação ou o próprio lead.' : 'O último ponto da conversa antes de o lead esfriar ou ser perdido.';
+    document.getElementById('d-conversas').textContent = comprou ? 'Uma linha por conversa: quem era, o que queria, o que travou e o que fez comprar.' : 'Uma linha por conversa: quem era, o que queria, o que travou e por que não comprou (em aberto ou perdido).';
+    const th = document.getElementById('th-final');
+    th.textContent = comprou ? 'O que fez comprar' : 'Por que não comprou';
+    th.dataset.field = comprou ? 'o_que_fechou' : 'motivo_perda';
+    document.getElementById('k-top-label').textContent = comprou ? 'Como a maioria comprou' : 'Onde a maioria parou';
+  }
+
+  function drawPeriodo() {
+    const p = dash.data('periodo');
+    const a = document.getElementById('p-range'); const n = document.getElementById('p-n');
+    if (p.status !== 'ok' || !p.data.length) { a.textContent = '—'; n.textContent = '—'; } else { a.textContent = p.data[0].intervalo || '—'; n.textContent = fmtInt(p.data[0].conversas); }
+    const ps = perList(); const cur = perNow();
+    const modo = perModo || (cur === 'Tudo' ? 'T' : cur[0]);
+    const ult = ps.find((x) => x.startsWith('D:'));
+    document.querySelectorAll('[data-pmodo]').forEach((b) => {
+      const m = b.dataset.pmodo;
+      b.setAttribute('aria-pressed', String(m === 'U' ? (modo === 'D' && cur === ult) : m === modo && !(m === 'D' && cur === ult)));
+    });
+    const box = document.getElementById('g-per');
+    const vals = modo === 'T' || (modo === 'D' && cur === ult && !perModo) ? [] : ps.filter((x) => x.startsWith(modo + ':'));
+    const sig = modo + '|' + vals.join(';');
+    if (box.dataset.sig !== sig) {
+      box.dataset.sig = sig;
+      box.replaceChildren(...vals.map((v) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'rv-chip'; b.dataset.per = v; b.textContent = perLabel(v); b.addEventListener('click', () => dash.setParams({ per: v })); return b; }));
+    }
+    box.hidden = !vals.length;
+    box.querySelectorAll('[data-per]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.per === cur)));
+    document.getElementById('p-atual').textContent = cur === 'Tudo' ? 'Tudo desde o início' : cur.startsWith('D:') ? (cur === ult ? 'Último dia · ' : 'Dia · ') + perLabel(cur) : perLabel(cur);
+  }
+  document.querySelectorAll('[data-pmodo]').forEach((b) => b.addEventListener('click', () => {
+    const m = b.dataset.pmodo; const ps = perList();
+    if (m === 'U') { perModo = ''; dash.setParams({ per: ps.find((x) => x.startsWith('D:')) || 'Tudo' }); return; }
+    if (m === 'T') { perModo = ''; dash.setParams({ per: 'Tudo' }); return; }
+    perModo = m; const first = ps.find((x) => x.startsWith(m + ':'));
+    if (m === 'D') { const d = ps.filter((x) => x.startsWith('D:')); dash.setParams({ per: d[1] || d[0] || 'Tudo' }); return; }
+    dash.setParams({ per: first || 'Tudo' });
+  }));
+
+  const fmtH = (h) => (h == null ? '—' : (h < 1 ? Math.round(h * 60) + ' min' : d3.format('.1f')(h).replace('.', ',') + ' h'));
+  const fmtR = (v) => (v == null ? '—' : 'R$ ' + d3.format(',')(v).replace(/,/g, '.'));
+
+  const fmtMin = (m) => (m == null ? '—' : m < 60 ? Math.round(m) + ' min' : d3.format('.1f')(m / 60).replace('.', ',') + ' h');
+  const fmtDia = (d) => { const [y, mo, da] = d.split('-'); const w = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][new Date(Number(y), Number(mo) - 1, Number(da)).getDay()]; return w + ' ' + da + '/' + mo; };
+  let tipoErro = '';
+  const whereDia = () => 'produto=' + encodeURIComponent(prodNow()) + '&periodo=' + encodeURIComponent(perNow());
+  document.querySelectorAll('#radar [data-terro]').forEach((b) => b.addEventListener('click', () => { tipoErro = b.dataset.terro; drawCasos(); }));
+  const num = (td, v, f) => { td.textContent = f ? f(v) : fmtInt(v); td.style.fontVariantNumeric = 'tabular-nums'; };
+
+  function drawDia() {
+    const k = dash.data('dia_kpis');
+    const ids = ['kd-lev', 'kd-15', 'kd-sem', 'kd-leads', 'kd-conx'];
+    ids.forEach((id) => document.getElementById(id).setAttribute('data-where', whereDia()));
+    const cur = perNow(); document.getElementById('h-dia').textContent = (cur.startsWith('D:') ? 'Correção do dia · ' : 'Atendimento · ') + perLabel(cur);
+    if (k.status !== 'ok') { ids.forEach((id) => { document.getElementById(id).textContent = '—'; }); return; }
+    const r = k.data.find((x) => x.periodo === perNow() && x.produto === prodNow()) || {};
+    const L = dash.data('dia_leads'); const lr = L.status === 'ok' ? L.data.find((x) => x.periodo === perNow() && x.produto === prodNow()) : null;
+    const nl = lr ? lr.leads : null; const lev = lr ? lr.levantadas : null; const ped = r.levantadas || 0; const n15 = Math.round((r.pct_ate15 || 0) * ped); const sem = r.sem_resposta || 0;
+    const bar = (id, v) => { document.getElementById(id).style.width = (nl ? Math.min(100, Math.max(v ? 1 : 0, (v / nl) * 100)) : 0) + '%'; };
+    const ini = lr && lr.desde ? lr.desde.slice(8, 10) + '/' + lr.desde.slice(5, 7) : '';
+    document.getElementById('kd-leads').textContent = nl == null ? '—' : fmtInt(nl);
+    document.getElementById('kd-leads-note').textContent = 'leads que entraram no Clint no período (o mesmo número de Leads e vendas por origem)';
+    bar('kb-leads', nl || 0); bar('kb-lev', lev || 0); bar('kb-15', lr && lr.cobre ? n15 : 0); bar('kb-sem', lr && lr.cobre ? sem : 0);
+    document.getElementById('kd-lev').textContent = lev == null ? '—' : fmtInt(lev);
+    document.getElementById('kd-fora').textContent = 'leads do período que hoje estão em Conexão ou etapa posterior (régua da Sales Ops), qualquer status';
+    document.getElementById('kd-conx').textContent = nl ? fmtPct1(lev / nl) : '—';
+    document.getElementById('kd-conx-note').textContent = 'levantadas de mão ÷ leads totais (régua da Sales Ops)';
+    document.getElementById('kd-15').textContent = r.pct_ate15 == null ? '—' : fmtPct(r.pct_ate15);
+    const avisoR = lr && !lr.cobre ? ' · vale a partir de ' + ini + ' (início da leitura das mensagens)' : '';
+    document.getElementById('kd-15-note').textContent = fmtInt(n15) + ' de ' + fmtInt(ped) + ' pedidos de atendimento lidos nas mensagens · espera mediana ' + fmtMin(r.mediana_espera) + ' · meta 80%' + avisoR;
+    document.getElementById('kd-sem').textContent = fmtInt(sem);
+    document.getElementById('kd-sem-note').textContent = (ped ? fmtPct(sem / ped) + ' dos pedidos de atendimento · ' : '') + (r.sem_dono ? fmtInt(r.sem_dono) + ' sem responsável confirmado (processo)' : 'todas com responsável') + avisoR;
+  }
+
+  function drawFaixas() {
+    const box = document.getElementById('c-faixas'); box.setAttribute('data-where', whereDia());
+    const o = dash.data('dia_faixas');
+    if (o.status === 'error') { fail(box); return; }
+    box.replaceChildren();
+    if (o.status !== 'ok') return;
+    const rows = o.data.filter((r) => r.periodo === perNow() && r.produto === prodNow()).sort((a, b) => a.ordem - b.ordem);
+    const tot = d3.sum(rows, (r) => r.total); if (!tot) return;
+    const W = box.clientWidth || 400; const rowH = 26; const lw = 104; const m = { l: lw + 10, r: 84, t: 2, b: 2 };
+    const H = m.t + m.b + rows.length * rowH;
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scaleLinear([0, d3.max(rows, (r) => r.total) || 1], [m.l, W - m.r]);
+    const y = d3.scaleBand(rows.map((r) => r.rotulo), [m.t, H - m.b]).padding(0.28);
+    const bom = ['Até 5 min', '5 a 15 min'];
+    const cor = (r) => (bom.includes(r.rotulo) ? 'var(--vt-accent)' : r.rotulo === 'Sem resposta' ? 'var(--color-bad)' : r.rotulo === 'Aguardando' || r.rotulo === 'Só a IA respondeu' ? 'var(--color-fg-muted)' : 'var(--color-warn)');
+    const g = svg.selectAll('g').data(rows).join('g');
+    g.append('text').attr('x', m.l - 8).attr('y', (r) => y(r.rotulo) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('font-size', 12).attr('fill', 'var(--color-fg)').text((r) => r.rotulo);
+    g.append('rect').attr('x', m.l).attr('y', (r) => y(r.rotulo)).attr('height', y.bandwidth()).attr('width', (r) => (r.total ? Math.max(2, x(r.total) - m.l) : 0)).attr('fill', cor).attr('rx', 3);
+    g.append('text').attr('x', (r) => x(r.total) + 6).attr('y', (r) => y(r.rotulo) + y.bandwidth() / 2).attr('dy', '0.35em').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').style('font-variant-numeric', 'tabular-nums').text((r) => fmtInt(r.total) + ' · ' + fmtPct(r.total / tot));
+    box.style.minHeight = H + 'px';
+  }
+
+  function drawDVend() {
+    const o = dash.data('dia_vendedor'); document.getElementById('t-dvend').setAttribute('data-where', whereDia());
+    if (o.status === 'error') { fail(document.querySelector('#t-dvend tbody')); return; }
+    if (o.status !== 'ok') return;
+    const rows = o.data.filter((r) => r.periodo === perNow() && r.produto === prodNow()).sort((a, b) => b.sem_resposta - a.sem_resposta || b.levantadas - a.levantadas);
+    fillTable('t-dvend', rows, [
+      (td, r) => { td.textContent = r.vendedor; if (r.vendedor === 'Sem dono') td.className = 'rv-err-p'; },
+      (td, r) => num(td, r.levantadas), (td, r) => num(td, r.pct_ate15, (v) => (v == null ? '—' : fmtPct(v))),
+      (td, r) => num(td, r.mediana_espera, fmtMin),
+      (td, r) => { num(td, r.sem_resposta); if (r.sem_resposta) td.className = r.vendedor === 'Sem dono' ? 'rv-err-p' : 'rv-err-v'; },
+      (td, r) => { num(td, r.sem_proposta); td.classList.add('rv-hide-narrow'); }, (td, r) => { num(td, r.lidas); td.classList.add('rv-hide-narrow'); },
+    ], (r) => r.id);
+  }
+
+  function drawCasos() {
+    document.querySelectorAll('#radar [data-terro]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.terro === tipoErro)));
+    const o = dash.data('dia_casos');
+    if (o.status === 'error') { fail(document.querySelector('#t-casos tbody')); return; }
+    if (o.status !== 'ok') return;
+    const rows = o.data.filter((r) => noPer(r, perNow(), 'dia') && (prodNow() === 'Todos' || r.produto === prodNow()) && (!tipoErro || r.tipo === tipoErro))
+      .sort((a, b) => b.peso - a.peso || (b.espera ?? 0) - (a.espera ?? 0) || (a.hora > b.hora ? 1 : -1));
+    fillTable('t-casos', rows, [(td, r) => { td.textContent = r.dia.slice(8, 10) + '/' + r.dia.slice(5, 7) + (r.hora ? ' ' + r.hora : ''); td.style.whiteSpace = 'nowrap'; }, txt('lead'), txt('email'), txt('produto'), txt('vendedor'),
+      (td, r) => { td.textContent = r.tipo; td.className = r.tipo === 'Processo' ? 'rv-err-p' : 'rv-err-v'; },
+      txt('problema'), (td, r) => num(td, r.espera, fmtMin), (td, r) => { td.textContent = r.msg ? '“' + r.msg + '”' : (r.hora ? 'ainda não conferido' : ''); if (!r.msg) td.style.color = 'var(--color-fg-muted)'; }, txt('detalhe', 'rv-hide-narrow'), txt('revisao', 'rv-hide-narrow')], (r) => r.id);
+  }
+
+  function drawBase() {
+    const b = dash.data('maos_semana');
+    if (b.status === 'error') { fail(document.querySelector('#t-base tbody')); return; }
+    if (b.status !== 'ok') return;
+    const rows = b.data.filter((r) => r.produto === prodNow() && r.levantadas > 0).sort((x, y) => (x.semana === 'Todas' ? 1 : y.semana === 'Todas' ? -1 : x.semana < y.semana ? 1 : -1));
+    fillTable('t-base', rows, [
+      (td, r) => { td.textContent = r.semana === 'Todas' ? 'Todas as semanas' : 'Semana ' + r.semana; if (r.semana === 'Todas') td.style.fontWeight = 'var(--cds-font-weight-medium)'; },
+      (td, r) => num(td, r.levantadas), (td, r) => num(td, r.pct_ate15, (v) => (v == null ? '—' : fmtPct(v))),
+      (td, r) => num(td, r.mediana_espera, fmtMin),
+      (td, r) => num(td, r.sem_resposta, (v) => fmtInt(v) + (r.levantadas ? ' (' + fmtPct(v / r.levantadas) + ')' : '')),
+      (td, r) => { num(td, r.sem_dono); td.classList.add('rv-hide-narrow'); }], (r) => r.id);
+  }
+
+  function drawVend() {
+    const v = dash.data('vendedores');
+    if (v.status === 'error') { fail(document.querySelector('#t-vend tbody')); return; }
+    if (v.status !== 'ok') return;
+    const rows = v.data.filter((r) => r.produto === prodNow() && r.aba === abaNow() && r.periodo === perNow()).sort((a, b) => b.conversas - a.conversas);
+    fillTable('t-vend', rows, [txt('vendedor'), (td, r) => { td.textContent = fmtInt(r.conversas); },
+      (td, r) => { td.textContent = fmtPct(r.pct_sem_resposta); }, (td, r) => { td.textContent = fmtH(r.mediana_horas); },
+      (td, r) => { td.className = 'rv-hide-narrow'; td.textContent = fmtR(r.ancora_comum); },
+      (td, r) => { td.className = 'rv-hide-narrow'; td.textContent = fmtR(r.preco_mediano); },
+      (td, r) => { td.className = 'rv-hide-narrow'; td.textContent = fmtPct(r.pct_dupla); }], (r) => r.id);
+  }
+
+  function drawKpis() {
+    const k = dash.data('kpis');
+    const ids = ['k-conv', 'k-top', 'k-top-note', 'k-dupla', 'k-sem', 'k-horas'];
+    ids.forEach((id) => document.getElementById(id).setAttribute('data-where', where()));
+    document.getElementById('n-c').setAttribute('data-where', where('Compraram'));
+    document.getElementById('n-n').setAttribute('data-where', where('Não compraram'));
+    if (k.status !== 'ok') { ids.concat(['n-c', 'n-n']).forEach((id) => { document.getElementById(id).textContent = '—'; }); return; }
+    const find = (aba) => k.data.find((x) => x.produto === prodNow() && x.aba === aba && x.periodo === perNow()) || { conversas: 0 };
+    const r = find(abaNow());
+    ['k-conv', 'k-top', 'k-dupla', 'k-sem', 'k-horas'].forEach((id) => document.getElementById(id).classList.remove('dash-skeleton'));
+    document.getElementById('k-horas').textContent = fmtH(r.mediana_horas);
+    document.getElementById('n-c').textContent = fmtInt(find('Compraram').conversas);
+    document.getElementById('n-n').textContent = fmtInt(find('Não compraram').conversas);
+    document.getElementById('k-conv').textContent = fmtInt(r.conversas);
+    document.getElementById('k-top').textContent = r.pct_top_caminho == null ? '—' : fmtPct(r.pct_top_caminho);
+    document.getElementById('k-top-note').textContent = r.top_caminho || '—';
+    document.getElementById('k-dupla').textContent = r.pct_dupla == null ? '—' : fmtPct(r.pct_dupla);
+    document.getElementById('k-sem').textContent = r.pct_sem_resposta == null ? '—' : fmtPct(r.pct_sem_resposta);
+  }
+
+  function drawAlertas() {
+    const a = dash.data('alertas');
+    if (a.status === 'error') { fail(document.querySelector('#t-alertas tbody')); return; }
+    if (a.status !== 'ok') return;
+    const rows = a.data.filter(inProd).sort((x, y) => (sevOrder[x.severidade] - sevOrder[y.severidade]) || (y.data > x.data ? 1 : -1));
+    fillTable('t-alertas', rows, [
+      (td, r) => { const s = document.createElement('span'); s.className = 'rv-sev ' + (sevClass[r.severidade] || ''); s.textContent = r.severidade; td.appendChild(s); },
+      (td, r) => { td.textContent = r.titulo; td.style.fontWeight = 'var(--cds-font-weight-medium)'; },
+      txt('detalhe'), txt('dono', 'rv-hide-narrow'), txt('produto', 'rv-hide-narrow'),
+    ], (r) => r.id);
+  }
+
+  function drawObjTop() {
+    const box = document.getElementById('l-objecoes-top');
+    box.setAttribute('data-where', where());
+    const o = dash.data('objecoes_top');
+    if (o.status === 'error') { fail(box); return; }
+    box.replaceChildren();
+    if (o.status !== 'ok') return;
+    const rows = o.data.filter((r) => r.produto === prodNow() && r.aba === abaNow() && r.periodo === perNow()).sort((a, b) => a.posicao - b.posicao);
+    if (!rows.length) { const li = document.createElement('li'); li.className = 'rv-note'; li.textContent = 'Nenhuma objeção registrada neste recorte.'; box.append(li); return; }
+    rows.forEach((r) => {
+      const li = document.createElement('li'); li.className = 'rv-obj';
+      const head = document.createElement('div'); head.className = 'rv-obj-head';
+      const t = document.createElement('strong'); t.textContent = r.posicao + '. ' + r.sub;
+      const meta = document.createElement('span'); meta.className = 'rv-obj-meta';
+      meta.textContent = r.categoria + ' · ' + r.conversas + (r.conversas === 1 ? ' conversa' : ' conversas');
+      head.append(t, meta); li.append(head);
+      [r.exemplo_1, r.exemplo_2].filter(Boolean).forEach((e) => { const q = document.createElement('q'); q.className = 'rv-obj-q'; q.textContent = e; li.append(q); });
+      box.append(li);
+    });
+  }
+
+  function drawFrases() {
+    const f = dash.data('frases');
+    document.querySelectorAll('[data-tipo]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tipo === tipoFrase)));
+    if (f.status === 'error') { fail(document.querySelector('#t-frases tbody')); return; }
+    if (f.status !== 'ok') return;
+    const q = document.getElementById('q-frases').value.trim().toLowerCase();
+    const rows = f.data.filter(inProd).filter(inSem).filter((r) => r.aba === abaNow()).filter((r) => !tipoFrase || r.tipo === tipoFrase)
+      .filter((r) => !q || (r.frase + ' ' + r.quem).toLowerCase().includes(q)).sort((x, y) => (y.data > x.data ? 1 : -1));
+    fillTable('t-frases', rows, [txt('tipo'), (td, r) => { td.className = 'rv-quote'; td.textContent = '“' + r.frase + '”'; }, txt('quem', 'rv-hide-narrow'), txt('uso'), txt('produto', 'rv-hide-narrow')], (r) => r.id);
+  }
+
+  function drawConversas() {
+    const c = dash.data('conversas');
+    if (c.status === 'error') { fail(document.querySelector('#t-conversas tbody')); return; }
+    if (c.status !== 'ok') return;
+    const fin = abaNow() === 'Compraram' ? 'o_que_fechou' : 'motivo_perda';
+    const rows = c.data.filter(inProd).filter(inSem).filter(inAba).sort((x, y) => (y.data > x.data ? 1 : -1));
+    const cls = { 'Comprou': 'rv-out-comprou', 'Perdido': 'rv-out-perdido', 'Em aberto': 'rv-out-aberto' };
+    fillTable('t-conversas', rows, [
+      (td, r) => { td.textContent = r.data; td.style.whiteSpace = 'nowrap'; },
+      txt('lead'), txt('email'), txt('produto'), txt('vendedor'), txt('praca', 'rv-hide-narrow'),
+      (td, r) => { td.textContent = r.desfecho; td.className = cls[r.desfecho] || ''; },
+      txt('perfil', 'rv-hide-narrow'), txt('desejo', 'rv-hide-narrow'), txt('objecao_principal'), txt('caminho'), txt(fin),
+    ], (r) => r.id);
+  }
+
+  function tipFor(box) {
+    let t = box.querySelector('.rv-tip');
+    if (!t) { t = document.createElement('div'); t.className = 'rv-tip'; t.hidden = true; box.appendChild(t); }
+    return t;
+  }
+  function placeTip(box, tip, x, y) {
+    const w = box.clientWidth; const tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(w - tw, x + 12)) + 'px';
+    tip.style.top = Math.max(0, y - tip.offsetHeight - 8) + 'px';
+  }
+
+  function barChart(boxId, source, color) {
+    const box = document.getElementById(boxId);
+    box.setAttribute('data-where', where());
+    const o = dash.data(source);
+    if (o.status === 'error') { fail(box); return; }
+    box.replaceChildren();
+    if (o.status !== 'ok') return;
+    const rows = o.data.filter((r) => r.produto === prodNow() && r.aba === abaNow() && r.periodo === perNow()).sort((a, b) => b.total - a.total || a.rotulo.localeCompare(b.rotulo));
+    if (!rows.length) return;
+    const tot = d3.sum(rows, (r) => r.total);
+    const W = box.clientWidth || 400; const rowH = 30;
+    const svg = d3.select(box).append('svg').attr('width', '100%');
+    const probe = svg.append('text').attr('font-size', 12).style('font-family', 'var(--font-anthropic-sans)');
+    let lw = 0; rows.forEach((r) => { probe.text(r.rotulo); lw = Math.max(lw, probe.node().getComputedTextLength()); });
+    probe.remove();
+    lw = Math.min(lw, W * 0.55);
+    const m = { l: lw + 12, r: 32, t: 4, b: 4 };
+    const H = m.t + m.b + rows.length * rowH;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scaleLinear([0, d3.max(rows, (r) => r.total)], [m.l, W - m.r]);
+    const y = d3.scaleBand(rows.map((r) => r.rotulo), [m.t, H - m.b]).padding(0.3);
+    const tip = tipFor(box);
+    const g = svg.selectAll('g.row').data(rows).join('g').attr('class', 'row');
+    g.append('text').attr('x', m.l - 8).attr('y', (r) => y(r.rotulo) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('font-size', 12).attr('fill', 'var(--color-fg)').text((r) => r.rotulo)
+      .each(function () { const el = this; while (el.getComputedTextLength() > lw && el.textContent.length > 4) el.textContent = el.textContent.slice(0, -2) + '…'; });
+    g.append('rect').attr('x', m.l).attr('y', (r) => y(r.rotulo)).attr('height', y.bandwidth()).attr('width', (r) => Math.max(2, x(r.total) - m.l)).attr('fill', color).attr('rx', 3);
+    g.append('text').attr('x', (r) => x(r.total) + 6).attr('y', (r) => y(r.rotulo) + y.bandwidth() / 2).attr('dy', '0.35em').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').style('font-variant-numeric', 'tabular-nums').text((r) => fmtInt(r.total));
+    g.append('rect').attr('x', 0).attr('y', (r) => y(r.rotulo)).attr('width', W).attr('height', y.bandwidth()).attr('fill', 'transparent')
+      .on('mousemove', (ev, r) => { const [px, py] = d3.pointer(ev, box); tip.hidden = false; tip.replaceChildren(); const h = document.createElement('div'); h.className = 'rv-tip-head'; h.textContent = r.rotulo; const l1 = document.createElement('div'); l1.textContent = fmtInt(r.total) + ' (' + fmtPct(r.total / tot) + ')'; tip.append(h, l1); placeTip(box, tip, px, py); })
+      .on('mouseleave', () => { tip.hidden = true; });
+    box.style.minHeight = H + 'px';
+  }
+
+  function drawOrigens() {
+    const cur = perNow(); const w = whereDia();
+    document.getElementById('h-origens').textContent = 'Leads e vendas por origem · ' + (cur === 'Tudo' ? 'desde 1º/out' : perLabel(cur));
+    ['ko-leads', 'ko-vend', 'ko-fat', 'ko-conv', 't-origens', 't-acoes'].forEach((id) => document.getElementById(id).setAttribute('data-where', w));
+    const k = dash.data('origens_kpis');
+    const r = k.status === 'ok' ? (k.data.find((x) => x.periodo === cur && x.produto === prodNow()) || null) : null;
+    document.getElementById('ko-leads').textContent = r ? fmtInt(r.leads) : '—';
+    document.getElementById('ko-vend').textContent = r ? fmtInt(r.vendas) : '—';
+    document.getElementById('ko-fat').textContent = r ? fmtR(r.faturamento) : '—';
+    document.getElementById('ko-conv').textContent = r && r.conversao != null ? fmtPct1(r.conversao) : '—';
+    document.getElementById('ko-ticket').textContent = r && r.vendas ? 'ticket médio ' + fmtR(Math.round(r.faturamento / r.vendas)) : '—';
+    ['t-trafego', 'n-regra'].forEach((id) => document.getElementById(id).setAttribute('data-where', w));
+    const tf = dash.data('origens_trafego');
+    if (tf.status === 'error') { fail(document.querySelector('#t-trafego tbody')); } else if (tf.status === 'ok') {
+      const rows = tf.data.filter((x) => x.periodo === cur && x.produto === prodNow()).sort((a, b) => a.ordem - b.ordem);
+      fillTable('t-trafego', rows, [
+        (td, x) => { td.textContent = x.trafego; td.style.fontWeight = '600'; },
+        (td, x) => num(td, x.leads), (td, x) => num(td, x.pct_leads, (v) => (v == null ? '—' : fmtPct1(v))),
+        (td, x) => num(td, x.vendas), (td, x) => num(td, x.faturamento, fmtR),
+      ], (x) => x.id);
+    }
+    const rg = dash.data('origens_regra');
+    const nr = document.getElementById('n-regra');
+    if (rg.status === 'error') { nr.textContent = 'Não foi possível calcular a conferência.'; } else if (rg.status === 'ok') {
+      const x = rg.data.find((y) => y.periodo === cur && y.produto === prodNow());
+      nr.textContent = !x || !x.leads ? '—' : 'Regra do time: origem pelo campo Ação em ' + fmtPct1(x.pct_acao) + ' dos leads (o resto pela Origem do negócio). Quando os dois campos existem, batem em ' + fmtPct1(x.pct_confere) + '. ' + fmtInt(x.achados) + ' leads tiveram o tráfego achado em outro negócio do mesmo contato; ' + fmtInt(x.nao_identificado) + ' seguem sem nenhum registro de tráfego no Clint.';
+    }
+    const c = dash.data('origens_canal');
+    if (c.status === 'error') { fail(document.querySelector('#t-origens tbody')); } else if (c.status === 'ok') {
+      const rows = c.data.filter((x) => x.periodo === cur && x.produto === prodNow()).sort((a, b) => b.faturamento - a.faturamento || b.leads - a.leads);
+      const maxL = d3.max(rows, (x) => x.leads) || 1;
+      fillTable('t-origens', rows, [
+        (td, x) => {
+          td.textContent = x.canal; td.style.fontWeight = '600';
+          if (x.canal !== 'Origem não identificada' && (x.leads_sem_registro || x.vendas_sem_registro)) {
+            const n = document.createElement('div'); n.className = 'rv-kpi-note'; n.style.fontWeight = '400';
+            n.textContent = 'inclui sem registro no Clint: ' + fmtInt(x.leads_sem_registro) + ' leads · ' + fmtInt(x.vendas_sem_registro) + ' vendas';
+            td.appendChild(n);
+          }
+        },
+        (td, x) => {
+          const wrap = document.createElement('div'); wrap.className = 'rv-conv';
+          const trk = document.createElement('span'); trk.className = 'rv-conv-trk';
+          const bar = document.createElement('span'); bar.className = 'rv-conv-bar'; bar.style.width = (x.leads ? Math.max(2, (x.leads / maxL) * 100) : 0) + '%'; trk.appendChild(bar);
+          const t = document.createElement('span'); t.className = 'rv-conv-n'; t.textContent = fmtInt(x.leads);
+          wrap.append(t, trk); td.appendChild(wrap); td.style.minWidth = '9rem';
+        },
+        (td, x) => num(td, x.vendas), (td, x) => num(td, x.faturamento, fmtR),
+        (td, x) => num(td, x.conversao, (v) => (v == null ? '—' : fmtPct1(v))),
+      ], (x) => x.id);
+    }
+    const a = dash.data('origens_acoes');
+    if (a.status === 'error') { fail(document.querySelector('#t-acoes tbody')); } else if (a.status === 'ok') {
+      const rows = a.data.filter((x) => x.periodo === cur && x.produto === prodNow()).sort((p, q) => q.faturamento - p.faturamento || q.leads - p.leads);
+      fillTable('t-acoes', rows, [txt('canal'), txt('acao'), (td, x) => num(td, x.leads), (td, x) => num(td, x.vendas), (td, x) => num(td, x.faturamento, fmtR)], (x) => x.id);
+    }
+  }
+
+  function drawRecortes() {
+    const cur = perNow(); const pl = cur === 'Tudo' ? 'tudo desde o início' : perLabel(cur);
+    const dm = (d) => d.slice(8, 10) + '/' + d.slice(5, 7);
+    const rng = (ds) => { ds = ds.filter(Boolean).sort(); return !ds.length ? null : ds[0] === ds[ds.length - 1] ? dm(ds[0]) : dm(ds[0]) + ' a ' + dm(ds[ds.length - 1]); };
+    const m = dash.data('maos'); const c = dash.data('conversas');
+    document.querySelectorAll('.rv-recorte').forEach((el) => {
+      if (el.dataset.base === 'maos') {
+        if (m.status !== 'ok') { el.textContent = '—'; return; }
+        const r = m.data.filter((x) => noPer(x, cur, 'dia') && (prodNow() === 'Todos' || x.produto === prodNow()) && x.tipo === 'Quer conversar');
+        const conf = r.map((x) => x.conferido_ate || '').filter(Boolean).sort().pop();
+        el.textContent = 'Recorte: ' + pl + ' · ' + fmtInt(r.length) + ' pedidos de atendimento' + (r.length ? ', mensagens de ' + rng(r.map((x) => x.dia)) : '') + (conf ? ' · respostas conferidas no Clint até ' + dm(conf.slice(0, 10)) + ' ' + conf.slice(11, 16) : '');
+      } else {
+        if (c.status !== 'ok') { el.textContent = '—'; return; }
+        const r = c.data.filter(inProd).filter(inSem).filter(inAba);
+        const p = dash.data('periodo'); const fim = p.status === 'ok' && p.data.length ? p.data[0].fim : null;
+        el.textContent = 'Recorte: ' + pl + ' · ' + abaNow().toLowerCase() + ' · ' + fmtInt(r.length) + ' conversas lidas' + (r.length ? ', de ' + rng(r.map((x) => x.data)) : '') + (fim ? ' · base lida no Clint até ' + dm(fim) : '');
+      }
+    });
+  }
+
+  function drawSemOrig() {
+    const o = dash.data('vendas_sem_origem'); const cur = perNow();
+    document.getElementById('t-semorig').setAttribute('data-where', whereDia());
+    if (o.status === 'error') { fail(document.querySelector('#t-semorig tbody')); return; }
+    if (o.status !== 'ok') return;
+    const rows = o.data.filter((x) => noPer(x, cur, 'dia') && (prodNow() === 'Todos' || x.produto === prodNow())).sort((a, b) => (a.dia < b.dia ? 1 : -1) || b.valor - a.valor);
+    document.getElementById('s-semorig').textContent = 'Vendas sem origem identificada: ' + fmtInt(rows.length) + (rows.length ? ' (' + fmtR(Math.round(d3.sum(rows, (x) => x.valor))) + ')' : '') + ' · lista para conferir';
+    fillTable('t-semorig', rows, [(td, x) => { td.textContent = dm2(x.dia); td.style.whiteSpace = 'nowrap'; }, txt('lead'),
+      (td, x) => { td.textContent = x.email || '—'; if (!x.email) td.style.color = 'var(--color-fg-muted)'; },
+      txt('produto'), (td, x) => num(td, Math.round(x.valor), fmtR), txt('vendedor'), txt('cod', 'rv-hide-narrow'), txt('motivo')], (x) => x.id);
+  }
+  const dm2 = (d) => d.slice(8, 10) + '/' + d.slice(5, 7);
+  const fmtPct1 = (v) => (v == null ? '—' : (v < 0.1 && v > 0 ? d3.format('.1%')(v) : d3.format('.0%')(v)).replace('.', ','));
+
+  dash.onData(() => {
+    [drawChrome, drawPeriodo, drawKpis, drawAlertas, drawOrigens, drawSemOrig, drawRecortes].concat(document.getElementById('dia') ? [drawDia, drawFaixas, drawDVend, drawCasos] : []).concat(document.getElementById('t-base') ? [drawBase] : []).forEach((f) => { try { f(); } catch (e) { console.error(e); } });
+    const col = abaNow() === 'Compraram' ? 'var(--vt-accent)' : 'var(--vt-gold)';
+    barChart('c-caminhos', 'caminhos', col);
+    barChart('c-objecoes', 'objecoes_por_categoria', col);
+    try { drawObjTop(); } catch (e) { console.error(e); }
+    drawFrases(); drawConversas();
+  });
+})();
+</script>
