@@ -32,6 +32,9 @@
 .rv-take { margin: 0; color: var(--vt-muted); max-width: 70ch; }
 .rv-hero .rv-take { color: var(--vt-hero-muted); }
 .rv-bar { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; }
+.rv-data { display: inline-flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-caption); color: var(--vt-hero-muted); }
+.rv-date { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--vt-hero-fg) 28%, transparent); background: transparent; color: var(--vt-hero-fg); color-scheme: dark; }
+.rv-date:focus-visible { outline: 2px solid var(--vt-gold); outline-offset: 2px; }
 .rv-chip { font: inherit; font-size: var(--cds-font-size-caption); padding: 5px 14px; border-radius: 999px; border: 1px solid var(--vt-line); background: var(--vt-surface); color: var(--vt-fg); cursor: pointer; }
 .rv-chip[aria-pressed="true"] { background: var(--vt-accent); color: var(--vt-surface); border-color: var(--vt-accent); }
 .rv-hero .rv-chip { background: transparent; color: var(--vt-hero-fg); border-color: color-mix(in srgb, var(--vt-hero-fg) 28%, transparent); }
@@ -120,7 +123,7 @@
   <header class="rv-head rv-hero" id="topo">
     <span class="rv-eyebrow">Grupo Virtus · Receitas · atualizado todo dia às 7h</span>
     <h1 class="rv-title">Radar de Conversas Virtus</h1>
-    <p class="rv-take">Escolha o período (último dia, outro dia, semana, mês ou tudo): o painel inteiro muda junto. Só entra quem levantou a mão ou conversou de verdade: respostas automáticas e cliques de "encerrar contato" ficam de fora.</p>
+    <p class="rv-take">Escolha o produto e as datas (de/até, ou um atalho): o painel inteiro muda junto. Só entra quem levantou a mão ou conversou de verdade: respostas automáticas e cliques de "encerrar contato" ficam de fora.</p>
     <div class="rv-bar" role="group" aria-label="Produto">
       <button class="rv-chip" type="button" data-prod="Todos" aria-pressed="true">Todos</button>
       <button class="rv-chip" type="button" data-prod="ISD" aria-pressed="false">ISD</button>
@@ -128,12 +131,14 @@
     </div>
     <div class="rv-bar" role="group" aria-label="Período" id="g-pmodo">
       <button class="rv-chip" type="button" data-pmodo="U" aria-pressed="true">Último dia</button>
-      <button class="rv-chip" type="button" data-pmodo="D" aria-pressed="false">Outro dia</button>
-      <button class="rv-chip" type="button" data-pmodo="S" aria-pressed="false">Semana</button>
-      <button class="rv-chip" type="button" data-pmodo="M" aria-pressed="false">Mês</button>
+      <button class="rv-chip" type="button" data-pmodo="7" aria-pressed="false">Últimos 7 dias</button>
+      <button class="rv-chip" type="button" data-pmodo="M" aria-pressed="false">Este mês</button>
       <button class="rv-chip" type="button" data-pmodo="T" aria-pressed="false">Tudo</button>
     </div>
-    <div class="rv-bar" role="group" aria-label="Escolha o período" id="g-per" hidden></div>
+    <div class="rv-bar rv-datas">
+      <label class="rv-data">De <input type="date" id="f-de" class="rv-date" min="2026-10-01" aria-label="Data inicial"></label>
+      <label class="rv-data">Até <input type="date" id="f-ate" class="rv-date" min="2026-10-01" aria-label="Data final"></label>
+    </div>
     <p class="rv-period">Mostrando: <strong id="p-atual">—</strong> · vale para o painel inteiro</p>
   </header>
 
@@ -333,17 +338,19 @@
 </div>
 
 <script>
+window.RV_CALC = window.RV_CALC || {};
+const rvCalc = (id, o) => { window.RV_CALC[id] = o; dash.calc(id, o); };
 const ABAS = ['Compraram', 'Não compraram'];
 const PRODS = ['Todos', 'ISD', 'Protagon'];
 const abaDe = (d) => (d === 'Comprou' ? 'Compraram' : 'Não compraram');
 // Período: 'D:AAAA-MM-DD' (um dia, últimos 7), 'S:<semana>' (seg a dom), 'M:AAAA-MM' (mês), 'Tudo'.
 const periodosDe = (rows, campo) => {
+  if (window.RV_PER) return window.RV_PER;  // filtro de data escolhido na página (de/até): calcula só esse período
   const dias = [...new Set(rows.map((r) => r[campo]).filter(Boolean))].sort().reverse().slice(0, 7).map((d) => 'D:' + d);
-  const sems = [...new Set(rows.map((r) => r.semana_ini + '|' + r.semana))].sort().reverse().map((x) => 'S:' + x.split('|')[1]);
   const meses = [...new Set(rows.map((r) => (r[campo] || '').slice(0, 7)).filter(Boolean))].sort().reverse().map((m) => 'M:' + m);
-  return dias.concat(sems, meses, ['Tudo']);
+  return dias.concat(meses, ['Tudo']);
 };
-const noPer = (r, p, campo) => p === 'Tudo' || (p.startsWith('D:') ? r[campo] === p.slice(2) : p.startsWith('S:') ? r.semana === p.slice(2) : (r[campo] || '').slice(0, 7) === p.slice(2));
+const noPer = (r, p, campo) => p === 'Tudo' || (p.startsWith('R:') ? (r[campo] || '') >= p.slice(2, 12) && (r[campo] || '') <= p.slice(13, 23) : p.startsWith('D:') ? r[campo] === p.slice(2) : p.startsWith('S:') ? r.semana === p.slice(2) : (r[campo] || '').slice(0, 7) === p.slice(2));
 const naProd = (r, p) => p === 'Todos' || r.produto === p;
 
 const DIA_OK = ['Até 5 min', '5 a 15 min'];
@@ -352,7 +359,7 @@ const FAIXAS = ['Até 5 min', '5 a 15 min', '15 a 60 min', '1 a 4 h', 'Mais de 4
 const MAO = (x) => x.tipo === 'Quer conversar';
 const medDe = (a) => { const v = a.filter((x) => typeof x === 'number').sort((x, y) => x - y); return v.length ? v[Math.floor((v.length - 1) / 2)] : null; };
 
-dash.calc('dia_kpis', {
+rvCalc('dia_kpis', {
   inputs: ['maos'],
   title: 'Números do atendimento',
   description: 'Para cada período (últimos 7 dias, semanas, meses, tudo) e produto: quem quis conversar (mensagem lida e classificada), % respondidas em até 15 min úteis (inclui quem já estava em conversa), mediana de espera, sem resposta, sem dono e fora do horário.',
@@ -372,7 +379,7 @@ dash.calc('dia_kpis', {
   },
 });
 
-dash.calc('dia_faixas', {
+rvCalc('dia_faixas', {
   inputs: ['maos'],
   title: 'Espera por faixa',
   description: 'Quem quis conversar em cada período e produto, por faixa de tempo até a 1ª mensagem de um vendedor (horário útil).',
@@ -386,7 +393,7 @@ dash.calc('dia_faixas', {
   },
 });
 
-dash.calc('dia_vendedor', {
+rvCalc('dia_vendedor', {
   inputs: ['maos', 'conversas'],
   title: 'Vendedores no atendimento',
   description: 'Por período, produto e vendedor: quem quis conversar (mensagem lida e classificada), % em até 15 min, mediana de espera, sem resposta; e, das conversas lidas no período, quantas e quantas nunca receberam proposta.',
@@ -409,7 +416,7 @@ dash.calc('dia_vendedor', {
   },
 });
 
-dash.calc('dia_casos', {
+rvCalc('dia_casos', {
   inputs: ['maos', 'conversas'],
   title: 'Casos para corrigir',
   description: 'Por dia: quem quis conversar (mensagem lida e classificada) sem resposta ou com mais de 1 h de espera útil, (só quem escreveu querendo conversar, pela leitura da mensagem), e conversas lidas que nunca receberam proposta, ficaram sem resposta do time ou eram de comprador tratado como lead. Classifica em erro de processo (sem dono, comprador na régua de venda) ou de vendedor.',
@@ -442,7 +449,7 @@ dash.calc('dia_casos', {
   },
 });
 
-dash.calc('maos_semana', {
+rvCalc('maos_semana', {
   inputs: ['maos'],
   title: 'Quem quis conversar, por semana',
   description: 'Por semana (ou todas) e produto: quem quis conversar (mensagem lida e classificada), % respondidas em até 15 min úteis, mediana de espera, sem resposta e sem vendedor responsável.',
@@ -461,7 +468,7 @@ dash.calc('maos_semana', {
   },
 });
 
-dash.calc('periodo', {
+rvCalc('periodo', {
   inputs: ['conversas', 'maos'],
   title: 'Período na base',
   description: 'Data da conversa mais antiga e mais recente da base acumulada, total de conversas e lista de períodos para o filtro (últimos 7 dias, semanas, meses, tudo).',
@@ -478,7 +485,7 @@ dash.calc('periodo', {
   },
 });
 
-dash.calc('kpis', {
+rvCalc('kpis', {
   inputs: ['conversas'],
   title: 'Números por produto, grupo e período',
   description: 'Para cada produto, grupo (Compraram, Não compraram) e período (dia, semana, mês ou tudo): conversas, % que pediu dupla, % sem resposta, caminho mais comum e mediana de horas até o 1º vendedor.',
@@ -504,7 +511,7 @@ dash.calc('kpis', {
   },
 });
 
-dash.calc('vendedores', {
+rvCalc('vendedores', {
   inputs: ['conversas'],
   title: 'Números por vendedor',
   description: 'Por produto, grupo e período, para cada vendedor: conversas lidas, % de leads sem resposta, mediana de horas até a 1ª resposta, âncora mais usada, preço final mediano e % que pediu dupla.',
@@ -529,7 +536,7 @@ dash.calc('vendedores', {
   },
 });
 
-dash.calc('caminhos', {
+rvCalc('caminhos', {
   inputs: ['conversas'],
   title: 'Caminho da conversa',
   description: 'Quantas conversas seguiram cada caminho (quem conduziu a compra, ou onde a negociação parou), por produto, grupo e período.',
@@ -543,7 +550,7 @@ dash.calc('caminhos', {
   },
 });
 
-dash.calc('objecoes_top', {
+rvCalc('objecoes_top', {
   inputs: ['objecoes'],
   title: 'As 15 objeções mais comuns',
   description: 'Por produto, grupo e período: as 15 objeções mais frequentes em texto (subtipo dentro de cada categoria), quantas conversas diferentes trouxeram cada uma e duas frases de exemplo tiradas das conversas.',
@@ -565,7 +572,7 @@ dash.calc('objecoes_top', {
   },
 });
 
-dash.calc('objecoes_por_categoria', {
+rvCalc('objecoes_por_categoria', {
   inputs: ['objecoes'],
   title: 'Objeções por tipo',
   description: 'Quantas vezes cada tipo de objeção ou dúvida apareceu, por produto, grupo e período.',
@@ -588,7 +595,7 @@ const recorte = (origens, periodo, produto) => {
   return { leads: [...leads.values()], vendas };
 };
 const somaR = (vs) => Math.round(vs.reduce((s, v) => s + (v.valor || 0), 0));
-dash.calc('dia_leads', {
+rvCalc('dia_leads', {
   inputs: ['maos', 'origens', 'levantadas'],
   title: 'Funil do atendimento: leads e levantada de mão',
   description: 'Para cada período e produto: leads que entraram no Clint (um por pessoa e produto; o mesmo número do bloco Leads e vendas por origem) e, desses, quantos levantaram a mão pela régua da Sales Ops: o negócio de lead está hoje em Conexão ou em etapa posterior (ISD: Conexão, Negociação, Follow automático, Stand by, Fechado; Protagon: Conexão, Negociação, Follow up, Stand by, Compra fechada; no funil de sessão aberta do Protagon, Conexão não conta porque todo negócio nasce nela), qualquer status. Também diz se a leitura das mensagens (tempo de resposta) cobre o período.',
@@ -606,7 +613,7 @@ dash.calc('dia_leads', {
     return out;
   },
 });
-dash.calc('origens_kpis', {
+rvCalc('origens_kpis', {
   inputs: ['origens'],
   title: 'Leads e vendas por origem: totais',
   description: 'Para cada período e produto: leads que entraram (um por pessoa e produto), vendas do comercial no período, faturamento e conversão (vendas ÷ leads).',
@@ -619,7 +626,7 @@ dash.calc('origens_kpis', {
     return out;
   },
 });
-dash.calc('origens_canal', {
+rvCalc('origens_canal', {
   inputs: ['origens'],
   title: 'Leads e vendas por origem',
   description: 'Para cada período, produto e origem (Forms nativo, Venda direta/Inlead, webinário…): leads que entraram, vendas do comercial creditadas à origem do comprador, faturamento e conversão (vendas ÷ leads).',
@@ -640,7 +647,7 @@ dash.calc('origens_canal', {
   },
 });
 const ORDEM_TRAF = ['Tráfego pago', 'Social (orgânico)', 'Disparo (base própria)', 'WhatsApp (chamou direto)', 'Indicação', 'Não identificado'];
-dash.calc('origens_trafego', {
+rvCalc('origens_trafego', {
   inputs: ['origens'],
   title: 'De onde veio o tráfego',
   description: 'Para cada período e produto: leads e vendas do comercial por tipo de tráfego (pago, social orgânico, disparo para a base, WhatsApp direto, indicação ou não identificado), com o % dos leads.',
@@ -657,7 +664,7 @@ dash.calc('origens_trafego', {
     return out;
   },
 });
-dash.calc('origens_regra', {
+rvCalc('origens_regra', {
   inputs: ['origens'],
   title: 'Conferência da regra de origem',
   description: 'Para cada período e produto: % dos leads com origem pelo campo Ação, % em que a Ação bate com a Origem do negócio (quando as duas existem) e quantos tiveram o tráfego achado em outro negócio do mesmo contato.',
@@ -675,7 +682,7 @@ dash.calc('origens_regra', {
     return out;
   },
 });
-dash.calc('origens_acoes', {
+rvCalc('origens_acoes', {
   inputs: ['origens'],
   title: 'Ações dentro de cada origem',
   description: 'Para cada período e produto: cada nome de ação gravado no Clint, a origem em que foi agrupado, leads, vendas do comercial e faturamento.',
@@ -702,18 +709,51 @@ dash.calc('origens_acoes', {
   const sevOrder = { 'Crítico': 0, 'Atenção': 1, 'Oportunidade': 2 };
   let tipoFrase = '';
 
+  // Filtro de data (de/até): períodos prontos vêm das contas do painel; um intervalo escolhido é calculado aqui com as mesmas contas.
+  const RVC = {};
+  const SEM_PERIODO = new Set(['periodo', 'dia_casos', 'maos_semana']);
+  const rvData = (id) => {
+    const d = dash.data(id); const reg = (window.RV_CALC || {})[id];
+    if (!reg || d.status !== 'ok' || SEM_PERIODO.has(id)) return d;
+    const key = perNow();
+    if (!key.startsWith('R:')) return d;
+    const ins = reg.inputs.map((i) => dash.data(i));
+    if (ins.some((x) => x.status !== 'ok')) return { status: 'loading', data: [] };
+    const c = RVC[id];
+    if (c && c.key === key && c.ins.every((x, i) => x === ins[i].data)) return { status: 'ok', data: c.rows };
+    let rows; window.RV_PER = [key];
+    try { rows = reg.fn(...ins.map((x) => x.data)); } finally { window.RV_PER = null; }
+    RVC[id] = { key, ins: ins.map((x) => x.data), rows };
+    return { status: 'ok', data: rows };
+  };
   const prodNow = () => dash.params().produto || 'Todos';
   const abaNow = () => (dash.params().aba === 'Compraram' ? 'Compraram' : 'Não compraram');
   const inProd = (r) => { const p = prodNow(); return p === 'Todos' || r.produto === p || r.produto === 'Ambos'; };
   const inAba = (r) => abaDe(r.desfecho) === abaNow();
   const perList = () => { const p = dash.data('periodo'); return p.status === 'ok' && p.data.length ? (p.data[0].periodos || 'Tudo').split(';') : []; };
-  const perNow = () => { const ps = perList(); const p = dash.params().per; return ps.includes(p) ? p : (ps.find((x) => x.startsWith('D:')) || 'Tudo'); };
-  const noPer = (r, p, campo) => p === 'Tudo' || (p.startsWith('D:') ? r[campo] === p.slice(2) : p.startsWith('S:') ? r.semana === p.slice(2) : (r[campo] || '').slice(0, 7) === p.slice(2));
+  const ISO = /^\d{4}-\d{2}-\d{2}$/;
+  const perNow = () => {
+    const ps = perList(); const p = dash.params().per;
+    if (typeof p === 'string' && p.startsWith('R:') && ISO.test(p.slice(2, 12)) && ISO.test(p.slice(13, 23)) && p.slice(2, 12) <= p.slice(13, 23)) {
+      const a = p.slice(2, 12), b = p.slice(13, 23);
+      if (a === b && ps.includes('D:' + a)) return 'D:' + a;  // um dia já pronto
+      return p;
+    }
+    return ps.includes(p) ? p : (ps.find((x) => x.startsWith('D:')) || 'Tudo');
+  };
+  const perRange = (p) => {  // [de, até] do período, para o filtro de data
+    const pr = dash.data('periodo'); const ult = pr.status === 'ok' && pr.data.length ? (perList().find((x) => x.startsWith('D:')) || '').slice(2) : '';
+    if (p.startsWith('R:')) return [p.slice(2, 12), p.slice(13, 23)];
+    if (p.startsWith('D:')) return [p.slice(2), p.slice(2)];
+    if (p.startsWith('M:')) { const m = p.slice(2); const fim = new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7), 0)).toISOString().slice(0, 10); return [m + '-01', ult && ult < fim ? ult : fim]; }
+    return [DATA_INI, ult];
+  };
+  const DATA_INI = '2026-10-01';
+  const noPer = (r, p, campo) => p === 'Tudo' || (p.startsWith('R:') ? (r[campo] || '') >= p.slice(2, 12) && (r[campo] || '') <= p.slice(13, 23) : p.startsWith('D:') ? r[campo] === p.slice(2) : p.startsWith('S:') ? r.semana === p.slice(2) : (r[campo] || '').slice(0, 7) === p.slice(2));
   const inSem = (r) => noPer(r, perNow(), 'data');
   const where = (extra) => 'produto=' + encodeURIComponent(prodNow()) + '&aba=' + encodeURIComponent(extra || abaNow()) + '&periodo=' + encodeURIComponent(perNow());
   const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-  const perLabel = (p) => { if (p === 'Tudo') return 'Tudo'; const v = p.slice(2); if (p.startsWith('S:')) return 'Semana ' + v; if (p.startsWith('M:')) return MES[Number(v.slice(5, 7)) - 1] + '/' + v.slice(0, 4); return fmtDia(v); };
-  let perModo = '';
+  const perLabel = (p) => { if (p === 'Tudo') return 'Tudo'; if (p.startsWith('R:')) { const a = p.slice(2, 12), b = p.slice(13, 23); return a === b ? fmtDia(a) : a.slice(8, 10) + '/' + a.slice(5, 7) + ' a ' + b.slice(8, 10) + '/' + b.slice(5, 7); } const v = p.slice(2); if (p.startsWith('S:')) return 'Semana ' + v; if (p.startsWith('M:')) return MES[Number(v.slice(5, 7)) - 1] + '/' + v.slice(0, 4); return fmtDia(v); };
 
   document.querySelectorAll('[data-prod]').forEach((b) => b.addEventListener('click', () => dash.setParams({ produto: b.dataset.prod })));
   const tabs = [...document.querySelectorAll('[data-aba]')];
@@ -754,35 +794,38 @@ dash.calc('origens_acoes', {
   }
 
   function drawPeriodo() {
-    const p = dash.data('periodo');
+    const p = rvData('periodo');
     const a = document.getElementById('p-range'); const n = document.getElementById('p-n');
     if (p.status !== 'ok' || !p.data.length) { a.textContent = '—'; n.textContent = '—'; } else { a.textContent = p.data[0].intervalo || '—'; n.textContent = fmtInt(p.data[0].conversas); }
     const ps = perList(); const cur = perNow();
-    const modo = perModo || (cur === 'Tudo' ? 'T' : cur[0]);
-    const ult = ps.find((x) => x.startsWith('D:'));
-    document.querySelectorAll('[data-pmodo]').forEach((b) => {
-      const m = b.dataset.pmodo;
-      b.setAttribute('aria-pressed', String(m === 'U' ? (modo === 'D' && cur === ult) : m === modo && !(m === 'D' && cur === ult)));
+    const ult = (ps.find((x) => x.startsWith('D:')) || '').slice(2);
+    const [de, ate] = perRange(cur);
+    const mes = ult ? 'M:' + ult.slice(0, 7) : '';
+    const sete = ult ? 'R:' + diaMenos(ult, 6) + '|' + ult : '';
+    const ativo = cur === 'D:' + ult ? 'U' : cur === sete ? '7' : cur === mes ? 'M' : cur === 'Tudo' ? 'T' : '';
+    document.querySelectorAll('[data-pmodo]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pmodo === ativo)));
+    ['f-de', 'f-ate'].forEach((id, i) => {
+      const el = document.getElementById(id); if (!el) return;
+      if (ult) el.max = ult;
+      if (el !== document.activeElement) el.value = i ? ate : de;
     });
-    const box = document.getElementById('g-per');
-    const vals = modo === 'T' || (modo === 'D' && cur === ult && !perModo) ? [] : ps.filter((x) => x.startsWith(modo + ':'));
-    const sig = modo + '|' + vals.join(';');
-    if (box.dataset.sig !== sig) {
-      box.dataset.sig = sig;
-      box.replaceChildren(...vals.map((v) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'rv-chip'; b.dataset.per = v; b.textContent = perLabel(v); b.addEventListener('click', () => dash.setParams({ per: v })); return b; }));
-    }
-    box.hidden = !vals.length;
-    box.querySelectorAll('[data-per]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.per === cur)));
-    document.getElementById('p-atual').textContent = cur === 'Tudo' ? 'Tudo desde o início' : cur.startsWith('D:') ? (cur === ult ? 'Último dia · ' : 'Dia · ') + perLabel(cur) : perLabel(cur);
+    document.getElementById('p-atual').textContent = cur === 'Tudo' ? 'Tudo desde o início' : cur.startsWith('D:') ? (cur === 'D:' + ult ? 'Último dia · ' : 'Dia · ') + perLabel(cur) : perLabel(cur);
   }
+  const diaMenos = (d, n) => { const t = new Date(d + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() - n); return t.toISOString().slice(0, 10); };
   document.querySelectorAll('[data-pmodo]').forEach((b) => b.addEventListener('click', () => {
-    const m = b.dataset.pmodo; const ps = perList();
-    if (m === 'U') { perModo = ''; dash.setParams({ per: ps.find((x) => x.startsWith('D:')) || 'Tudo' }); return; }
-    if (m === 'T') { perModo = ''; dash.setParams({ per: 'Tudo' }); return; }
-    perModo = m; const first = ps.find((x) => x.startsWith(m + ':'));
-    if (m === 'D') { const d = ps.filter((x) => x.startsWith('D:')); dash.setParams({ per: d[1] || d[0] || 'Tudo' }); return; }
-    dash.setParams({ per: first || 'Tudo' });
+    const m = b.dataset.pmodo; const ps = perList(); const ult = (ps.find((x) => x.startsWith('D:')) || '').slice(2);
+    if (m === 'U') { dash.setParams({ per: ult ? 'D:' + ult : 'Tudo' }); return; }
+    if (m === '7') { dash.setParams({ per: ult ? 'R:' + diaMenos(ult, 6) + '|' + ult : 'Tudo' }); return; }
+    if (m === 'M') { dash.setParams({ per: ult ? 'M:' + ult.slice(0, 7) : 'Tudo' }); return; }
+    dash.setParams({ per: 'Tudo' });
   }));
+  const aplicaDatas = () => {
+    const de = document.getElementById('f-de'), ate = document.getElementById('f-ate');
+    if (!de || !ate || !de.value || !ate.value || !de.validity.valid || !ate.validity.valid) return;
+    let a = de.value, b = ate.value; if (a > b) [a, b] = [b, a];
+    dash.setParams({ per: 'R:' + a + '|' + b });
+  };
+  ['f-de', 'f-ate'].forEach((id) => { const el = document.getElementById(id); if (el) { el.addEventListener('change', aplicaDatas); el.addEventListener('blur', () => drawPeriodo()); } });
 
   const fmtH = (h) => (h == null ? '—' : (h < 1 ? Math.round(h * 60) + ' min' : d3.format('.1f')(h).replace('.', ',') + ' h'));
   const fmtR = (v) => (v == null ? '—' : 'R$ ' + d3.format(',')(v).replace(/,/g, '.'));
@@ -795,13 +838,13 @@ dash.calc('origens_acoes', {
   const num = (td, v, f) => { td.textContent = f ? f(v) : fmtInt(v); td.style.fontVariantNumeric = 'tabular-nums'; };
 
   function drawDia() {
-    const k = dash.data('dia_kpis');
+    const k = rvData('dia_kpis');
     const ids = ['kd-lev', 'kd-15', 'kd-sem', 'kd-leads', 'kd-conx'];
     ids.forEach((id) => document.getElementById(id).setAttribute('data-where', whereDia()));
     const cur = perNow(); document.getElementById('h-dia').textContent = (cur.startsWith('D:') ? 'Correção do dia · ' : 'Atendimento · ') + perLabel(cur);
     if (k.status !== 'ok') { ids.forEach((id) => { document.getElementById(id).textContent = '—'; }); return; }
     const r = k.data.find((x) => x.periodo === perNow() && x.produto === prodNow()) || {};
-    const L = dash.data('dia_leads'); const lr = L.status === 'ok' ? L.data.find((x) => x.periodo === perNow() && x.produto === prodNow()) : null;
+    const L = rvData('dia_leads'); const lr = L.status === 'ok' ? L.data.find((x) => x.periodo === perNow() && x.produto === prodNow()) : null;
     const nl = lr ? lr.leads : null; const lev = lr ? lr.levantadas : null; const ped = r.levantadas || 0; const n15 = Math.round((r.pct_ate15 || 0) * ped); const sem = r.sem_resposta || 0;
     const bar = (id, v) => { document.getElementById(id).style.width = (nl ? Math.min(100, Math.max(v ? 1 : 0, (v / nl) * 100)) : 0) + '%'; };
     const ini = lr && lr.desde ? lr.desde.slice(8, 10) + '/' + lr.desde.slice(5, 7) : '';
@@ -821,7 +864,7 @@ dash.calc('origens_acoes', {
 
   function drawFaixas() {
     const box = document.getElementById('c-faixas'); box.setAttribute('data-where', whereDia());
-    const o = dash.data('dia_faixas');
+    const o = rvData('dia_faixas');
     if (o.status === 'error') { fail(box); return; }
     box.replaceChildren();
     if (o.status !== 'ok') return;
@@ -842,7 +885,7 @@ dash.calc('origens_acoes', {
   }
 
   function drawDVend() {
-    const o = dash.data('dia_vendedor'); document.getElementById('t-dvend').setAttribute('data-where', whereDia());
+    const o = rvData('dia_vendedor'); document.getElementById('t-dvend').setAttribute('data-where', whereDia());
     if (o.status === 'error') { fail(document.querySelector('#t-dvend tbody')); return; }
     if (o.status !== 'ok') return;
     const rows = o.data.filter((r) => r.periodo === perNow() && r.produto === prodNow()).sort((a, b) => b.sem_resposta - a.sem_resposta || b.levantadas - a.levantadas);
@@ -857,7 +900,7 @@ dash.calc('origens_acoes', {
 
   function drawCasos() {
     document.querySelectorAll('#radar [data-terro]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.terro === tipoErro)));
-    const o = dash.data('dia_casos');
+    const o = rvData('dia_casos');
     if (o.status === 'error') { fail(document.querySelector('#t-casos tbody')); return; }
     if (o.status !== 'ok') return;
     const rows = o.data.filter((r) => noPer(r, perNow(), 'dia') && (prodNow() === 'Todos' || r.produto === prodNow()) && (!tipoErro || r.tipo === tipoErro))
@@ -868,7 +911,7 @@ dash.calc('origens_acoes', {
   }
 
   function drawBase() {
-    const b = dash.data('maos_semana');
+    const b = rvData('maos_semana');
     if (b.status === 'error') { fail(document.querySelector('#t-base tbody')); return; }
     if (b.status !== 'ok') return;
     const rows = b.data.filter((r) => r.produto === prodNow() && r.levantadas > 0).sort((x, y) => (x.semana === 'Todas' ? 1 : y.semana === 'Todas' ? -1 : x.semana < y.semana ? 1 : -1));
@@ -881,7 +924,7 @@ dash.calc('origens_acoes', {
   }
 
   function drawVend() {
-    const v = dash.data('vendedores');
+    const v = rvData('vendedores');
     if (v.status === 'error') { fail(document.querySelector('#t-vend tbody')); return; }
     if (v.status !== 'ok') return;
     const rows = v.data.filter((r) => r.produto === prodNow() && r.aba === abaNow() && r.periodo === perNow()).sort((a, b) => b.conversas - a.conversas);
@@ -893,7 +936,7 @@ dash.calc('origens_acoes', {
   }
 
   function drawKpis() {
-    const k = dash.data('kpis');
+    const k = rvData('kpis');
     const ids = ['k-conv', 'k-top', 'k-top-note', 'k-dupla', 'k-sem', 'k-horas'];
     ids.forEach((id) => document.getElementById(id).setAttribute('data-where', where()));
     document.getElementById('n-c').setAttribute('data-where', where('Compraram'));
@@ -913,7 +956,7 @@ dash.calc('origens_acoes', {
   }
 
   function drawAlertas() {
-    const a = dash.data('alertas');
+    const a = rvData('alertas');
     if (a.status === 'error') { fail(document.querySelector('#t-alertas tbody')); return; }
     if (a.status !== 'ok') return;
     const rows = a.data.filter(inProd).sort((x, y) => (sevOrder[x.severidade] - sevOrder[y.severidade]) || (y.data > x.data ? 1 : -1));
@@ -927,7 +970,7 @@ dash.calc('origens_acoes', {
   function drawObjTop() {
     const box = document.getElementById('l-objecoes-top');
     box.setAttribute('data-where', where());
-    const o = dash.data('objecoes_top');
+    const o = rvData('objecoes_top');
     if (o.status === 'error') { fail(box); return; }
     box.replaceChildren();
     if (o.status !== 'ok') return;
@@ -946,7 +989,7 @@ dash.calc('origens_acoes', {
   }
 
   function drawFrases() {
-    const f = dash.data('frases');
+    const f = rvData('frases');
     document.querySelectorAll('[data-tipo]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tipo === tipoFrase)));
     if (f.status === 'error') { fail(document.querySelector('#t-frases tbody')); return; }
     if (f.status !== 'ok') return;
@@ -957,7 +1000,7 @@ dash.calc('origens_acoes', {
   }
 
   function drawConversas() {
-    const c = dash.data('conversas');
+    const c = rvData('conversas');
     if (c.status === 'error') { fail(document.querySelector('#t-conversas tbody')); return; }
     if (c.status !== 'ok') return;
     const fin = abaNow() === 'Compraram' ? 'o_que_fechou' : 'motivo_perda';
@@ -985,7 +1028,7 @@ dash.calc('origens_acoes', {
   function barChart(boxId, source, color) {
     const box = document.getElementById(boxId);
     box.setAttribute('data-where', where());
-    const o = dash.data(source);
+    const o = rvData(source);
     if (o.status === 'error') { fail(box); return; }
     box.replaceChildren();
     if (o.status !== 'ok') return;
@@ -1019,7 +1062,7 @@ dash.calc('origens_acoes', {
     const cur = perNow(); const w = whereDia();
     document.getElementById('h-origens').textContent = 'Leads e vendas por origem · ' + (cur === 'Tudo' ? 'desde 1º/out' : perLabel(cur));
     ['ko-leads', 'ko-vend', 'ko-fat', 'ko-conv', 't-origens', 't-acoes'].forEach((id) => document.getElementById(id).setAttribute('data-where', w));
-    const k = dash.data('origens_kpis');
+    const k = rvData('origens_kpis');
     const r = k.status === 'ok' ? (k.data.find((x) => x.periodo === cur && x.produto === prodNow()) || null) : null;
     document.getElementById('ko-leads').textContent = r ? fmtInt(r.leads) : '—';
     document.getElementById('ko-vend').textContent = r ? fmtInt(r.vendas) : '—';
@@ -1027,7 +1070,7 @@ dash.calc('origens_acoes', {
     document.getElementById('ko-conv').textContent = r && r.conversao != null ? fmtPct1(r.conversao) : '—';
     document.getElementById('ko-ticket').textContent = r && r.vendas ? 'ticket médio ' + fmtR(Math.round(r.faturamento / r.vendas)) : '—';
     ['t-trafego', 'n-regra'].forEach((id) => document.getElementById(id).setAttribute('data-where', w));
-    const tf = dash.data('origens_trafego');
+    const tf = rvData('origens_trafego');
     if (tf.status === 'error') { fail(document.querySelector('#t-trafego tbody')); } else if (tf.status === 'ok') {
       const rows = tf.data.filter((x) => x.periodo === cur && x.produto === prodNow()).sort((a, b) => a.ordem - b.ordem);
       fillTable('t-trafego', rows, [
@@ -1036,13 +1079,13 @@ dash.calc('origens_acoes', {
         (td, x) => num(td, x.vendas), (td, x) => num(td, x.faturamento, fmtR),
       ], (x) => x.id);
     }
-    const rg = dash.data('origens_regra');
+    const rg = rvData('origens_regra');
     const nr = document.getElementById('n-regra');
     if (rg.status === 'error') { nr.textContent = 'Não foi possível calcular a conferência.'; } else if (rg.status === 'ok') {
       const x = rg.data.find((y) => y.periodo === cur && y.produto === prodNow());
       nr.textContent = !x || !x.leads ? '—' : 'Regra do time: origem pelo campo Ação em ' + fmtPct1(x.pct_acao) + ' dos leads (o resto pela Origem do negócio). Quando os dois campos existem, batem em ' + fmtPct1(x.pct_confere) + '. ' + fmtInt(x.achados) + ' leads tiveram o tráfego achado em outro negócio do mesmo contato; ' + fmtInt(x.nao_identificado) + ' seguem sem nenhum registro de tráfego no Clint.';
     }
-    const c = dash.data('origens_canal');
+    const c = rvData('origens_canal');
     if (c.status === 'error') { fail(document.querySelector('#t-origens tbody')); } else if (c.status === 'ok') {
       const rows = c.data.filter((x) => x.periodo === cur && x.produto === prodNow()).sort((a, b) => b.faturamento - a.faturamento || b.leads - a.leads);
       const maxL = d3.max(rows, (x) => x.leads) || 1;
@@ -1066,7 +1109,7 @@ dash.calc('origens_acoes', {
         (td, x) => num(td, x.conversao, (v) => (v == null ? '—' : fmtPct1(v))),
       ], (x) => x.id);
     }
-    const a = dash.data('origens_acoes');
+    const a = rvData('origens_acoes');
     if (a.status === 'error') { fail(document.querySelector('#t-acoes tbody')); } else if (a.status === 'ok') {
       const rows = a.data.filter((x) => x.periodo === cur && x.produto === prodNow()).sort((p, q) => q.faturamento - p.faturamento || q.leads - p.leads);
       fillTable('t-acoes', rows, [txt('canal'), txt('acao'), (td, x) => num(td, x.leads), (td, x) => num(td, x.vendas), (td, x) => num(td, x.faturamento, fmtR)], (x) => x.id);
@@ -1077,7 +1120,7 @@ dash.calc('origens_acoes', {
     const cur = perNow(); const pl = cur === 'Tudo' ? 'tudo desde o início' : perLabel(cur);
     const dm = (d) => d.slice(8, 10) + '/' + d.slice(5, 7);
     const rng = (ds) => { ds = ds.filter(Boolean).sort(); return !ds.length ? null : ds[0] === ds[ds.length - 1] ? dm(ds[0]) : dm(ds[0]) + ' a ' + dm(ds[ds.length - 1]); };
-    const m = dash.data('maos'); const c = dash.data('conversas');
+    const m = rvData('maos'); const c = rvData('conversas');
     document.querySelectorAll('.rv-recorte').forEach((el) => {
       if (el.dataset.base === 'maos') {
         if (m.status !== 'ok') { el.textContent = '—'; return; }
@@ -1087,14 +1130,14 @@ dash.calc('origens_acoes', {
       } else {
         if (c.status !== 'ok') { el.textContent = '—'; return; }
         const r = c.data.filter(inProd).filter(inSem).filter(inAba);
-        const p = dash.data('periodo'); const fim = p.status === 'ok' && p.data.length ? p.data[0].fim : null;
+        const p = rvData('periodo'); const fim = p.status === 'ok' && p.data.length ? p.data[0].fim : null;
         el.textContent = 'Recorte: ' + pl + ' · ' + abaNow().toLowerCase() + ' · ' + fmtInt(r.length) + ' conversas lidas' + (r.length ? ', de ' + rng(r.map((x) => x.data)) : '') + (fim ? ' · base lida no Clint até ' + dm(fim) : '');
       }
     });
   }
 
   function drawSemOrig() {
-    const o = dash.data('vendas_sem_origem'); const cur = perNow();
+    const o = rvData('vendas_sem_origem'); const cur = perNow();
     document.getElementById('t-semorig').setAttribute('data-where', whereDia());
     if (o.status === 'error') { fail(document.querySelector('#t-semorig tbody')); return; }
     if (o.status !== 'ok') return;
