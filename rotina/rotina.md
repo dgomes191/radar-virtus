@@ -1,27 +1,30 @@
 # Rotina diária — Radar de Conversas Virtus
 
 Painel (tipo Dashboard, do Diego): https://claude.ai/artifact/Mset1HmQEwZHUecc67nSVd
-Tudo o que a rotina precisa mora no banco do painel (ferramenta ArtifactData, sempre com esse `url`):
-- `radar_config/script` → campo `text` = radar.py
-- `radar_config/leitor` → campo `text` = modelo das instruções do leitor
-- `radar_config/rotina` → campo `text` = este arquivo
-- `radar_config/leve` → campo `text` = instruções do classificador da mensagem do lead ({DIA})
-- `radar_lotes/*` → conversas lidas (documentos imutáveis; a leitura mais nova de cada conversa vale)
-- `radar_dias/*` → números da base inteira, um documento por dia
-- `radar_maos/*` → quem quis conversar, um documento por dia (o mais novo de cada dia vale; só os com "metodo": "mensagem" entram no painel)
-- `radar_class/*` → classificação da mensagem de cada lead do dia (quer conversar, só reengajou, saiu…)
+Onde as coisas ficam (desde 04/11/2026):
+- O CÓDIGO e o ESTADO da rotina ficam como ARQUIVOS do próprio painel (assets). O banco guarda só o ponteiro `radar_config/estado` (lido direto na tela, sem `out_dir`): `{"codigo": "<id do pacote de código>", "estado": {"estado_radar_lotes.json": "<id>", …}, "dados_ate": "AAAA-MM-DD", "atualizado_em": "…"}`.
+- NUNCA use `out_dir` no ArtifactData para documentos do banco: a ferramenta recusa salvar em arquivo documentos que outras sessões gravaram, e foi isso que travou a execução de 04/11. Leitura de documento pequeno direto na tela é permitida. Arquivo (asset) se baixa com `Artifact` action `read`, `url` do painel, `path` = id do asset, `out_dir` = pasta (isso salva o arquivo).
+- O pacote de código tem: radar.py, estado.py, INSTRUCOES_TEMPLATE.md (leitor), LEVE_TEMPLATE.md (classificador; troque {DIA}), AUDIT.md, AUDIT_CONV.md.
+- O estado tem uma coleção por arquivo, no mesmo formato de antes (radar_lotes, radar_dias, radar_maos, radar_class, radar_contatos, radar_auditoria, radar_origens, radar_vendas_plan, radar_lev): `WORK/store/<coleção>/<doc_id>.json`.
+- As coleções do banco (radar_lotes, radar_maos…) continuam recebendo os documentos novos de cada dia como histórico, mas a rotina não lê mais delas.
+O que cada coleção guarda:
+- `radar_lotes/*` → conversas lidas (a leitura mais nova de cada conversa vale)
+- `radar_dias/*` → números da base inteira, um por dia
+- `radar_maos/*` → quem quis conversar, um por dia (o mais novo de cada dia vale; só os com "metodo": "mensagem" entram no painel)
+- `radar_class/*` → classificação da mensagem de cada lead do dia
 - `radar_contatos/*` → nome e e-mail dos leads que escreveram (o Diego pediu e-mail na lista de casos)
-- `radar_auditoria/*` → 2ª leitura independente de cada caso (atendimento e conversas)
-- `radar_origens/*` → leads que entraram por canal (Forms nativo, Venda direta/Inlead, webinário…) e vendas do comercial, um documento por dia (o mais novo de cada dia vale)
-- `radar_vendas_plan/*` → vendas do comercial lidas da planilha do comercial (Google Sheets "Backup vendas", id 1rAKKbn5LfjDpWMMc-GtzJGICgDZqb48orNRBWPOpPXU) com o canal de cada comprador; o documento mais novo vale e, nos dias que ele cobre, SUBSTITUI as vendas de `radar_origens` (regra do Diego: faturamento do comercial = o que o comercial usa)
-- `radar_config/auditoria` e `radar_config/auditoria_conv` → instruções do revisor
+- `radar_auditoria/*` → 2ª leitura independente de cada caso
+- `radar_origens/*` → leads por canal e vendas do comercial, um por dia (o mais novo vale)
+- `radar_vendas_plan/*` → vendas do comercial lidas da planilha "Backup vendas" (id 1rAKKbn5LfjDpWMMc-GtzJGICgDZqb48orNRBWPOpPXU); o mais novo vale e, nos dias que cobre, SUBSTITUI as vendas de radar_origens
+- `radar_lev/*` → levantada de mão pela régua da Sales Ops
 Regras fixas: nome e e-mail do lead só entram via `radar_contatos` (pedido do Diego, para achar o lead e corrigir); nunca grave telefone nem dado de saúde; nunca apague documentos do banco; não pergunte nada ao usuário (rotina sem ninguém olhando) — decida e registre.
 
 ## 0. Preparar
 - `ToolSearch` com `select:ArtifactData,Artifact,mcp__Clint__execute_indicator_query,mcp__Clint__list_origins,mcp__Clint__get_chat_messages,mcp__Clint__list_contact_chats` (o Artifact já pode estar carregado).
 - WORK = pasta nova no scratchpad (ex.: `<scratchpad>/radar_<data>`). Use caminhos absolutos.
-- `ArtifactData list` collection `radar_config`, `out_dir` = WORK/cfg. Com python, grave o campo `text` de `radar_config/script.json` em WORK/radar.py de `leitor.json` em WORK/INSTRUCOES_TEMPLATE.md, de `auditoria.json` em WORK/AUDIT.md e de `auditoria_conv.json` em WORK/AUDIT_CONV.md.
-- `ArtifactData list` collection `radar_lotes` (query.limit 1000, siga `next_cursor` até acabar), collections `radar_dias`, `radar_maos`, `radar_class`, `radar_contatos`, `radar_auditoria`, `radar_origens`, `radar_vendas_plan` e `radar_lev` (idem), todas com `out_dir` = WORK/store.
+- `ArtifactData get` collection `radar_config`, doc_id `estado` (SEM out_dir). Guarde a `version`.
+- Código: `Artifact` action `read`, `url` do painel, `path` = valor de `codigo`, `out_dir` = WORK/dl. Com python: `d=json.load(open(<arquivo salvo>)); [open(WORK+'/'+k,'w',encoding='utf-8').write(v) for k,v in d['arquivos'].items()]`. Confira que WORK/radar.py e WORK/estado.py existem.
+- Estado: para cada id em `estado`, `Artifact` action `read`, `url` do painel, `path` = id, `out_dir` = WORK/snap. Depois `python3 WORK/estado.py unpack --dir WORK/snap --store WORK/store`. Confira que vieram todas as coleções do ponteiro. Se o código ou algum arquivo de estado não baixar (2 tentativas), PARE: registre em `radar_log` e termine, sem gravar nada (o painel segue com o dia anterior).
 - ONTEM = data de ontem em America/Sao_Paulo. Rode `python3 WORK/radar.py pendentes --store WORK/store --ate ONTEM`. Processe cada dia de `processar`, do mais antigo para o mais novo (passos 1 a 4 por dia). Se vier vazio, pule para o passo 4b.
 
 ## 1. Consultas do dia D (D = dia em processamento; INI = D menos 14 dias)
@@ -52,7 +55,7 @@ O gatilho NÃO é a etapa Conexão: é o que o lead escreveu. ONTEM = dia a clas
 - chats: `{"measures":["Message.count"],"dimensions":["Contact.id","Chat.id"],"filters":[{"member":"Message.type","operator":"equals","values":["Cliente"]}],"timeDimensions":[{"dimension":"Message.createdAt","dateRange":["ONTEM","ONTEM"],"granularity":"day"}],"timezone":"America/Sao_Paulo","limit":15000}` → WORK/maos/chats.json
 - q3 de ONTEM: use WORK/ONTEM/q3.json do passo 1 (se ONTEM não foi processado nesta execução, rode a q3 do passo 1 para ONTEM). origins: WORK/<dia>/origins.json.
 - `python3 WORK/radar.py universo --origins <origins.json> --q3 <q3 de ONTEM> --chats WORK/maos/chats.json --dia ONTEM --out WORK/maos/u` (todo lead não comprador de ISD/Protagon que escreveu em ONTEM, em lotes de 40).
-- Classificar: grave o campo `text` de `radar_config/leve` em WORK/LEVE.md trocando {DIA} por ONTEM. Um subagente (`Agent`, general-purpose, model sonnet) para cada 3 lotes, no máximo 5 ao mesmo tempo, com o prompt: "Leia WORK/LEVE.md e siga à risca para estas entradas, uma depois da outra ({ENTRADA} → {SAIDA}): WORK/maos/u/u_00.json → WORK/maos/r/u_00.jsonl; … Ao final, responda em até 4 linhas." Depois confira com python se todo contato dos lotes tem linha na saída; os que faltarem vão num lote extra para um único subagente, uma vez só. Se o limite de uso estourar, siga com o que foi classificado e registre no log.
+- Classificar: copie WORK/LEVE_TEMPLATE.md para WORK/LEVE.md trocando {DIA} por ONTEM. Um subagente (`Agent`, general-purpose, model sonnet) para cada 3 lotes, no máximo 5 ao mesmo tempo, com o prompt: "Leia WORK/LEVE.md e siga à risca para estas entradas, uma depois da outra ({ENTRADA} → {SAIDA}): WORK/maos/u/u_00.json → WORK/maos/r/u_00.jsonl; … Ao final, responda em até 4 linhas." Depois confira com python se todo contato dos lotes tem linha na saída; os que faltarem vão num lote extra para um único subagente, uma vez só. Se o limite de uso estourar, siga com o que foi classificado e registre no log.
 - `python3 WORK/radar.py classdoc --res WORK/maos/r --dia ONTEM --out WORK/maos/class_<AAAAMMDD de ONTEM>.json`; `ArtifactData set` em collection `radar_class`, doc_id = nome do arquivo sem `.json` (se já existir, leia a versão e use `if_version`); copie para WORK/store/radar_class/.
 - q6 (mensagens do time) de A até HOJE, uma consulta por dia (arquivos q6_1, q6_2, q6_3): `{"measures":["Message.count"],"dimensions":["Contact.id","User.name"],"filters":[{"member":"Message.type","operator":"equals","values":["Atendente"]},{"member":"Message.source","operator":"equals","values":["Chat","Fora da Clint"]}],"timeDimensions":[{"dimension":"Message.createdAt","dateRange":["<dia>","<dia>"],"granularity":"minute"}],"timezone":"America/Sao_Paulo","limit":15000}`
 - donos (vendedor responsável pelo negócio aberto; NÃO use filtro de mensagem, senão o nome vem vazio): `{"measures":["Deal.count"],"dimensions":["Contact.id","Origin.id","User.name","Deal.createdAt"],"filters":[{"member":"Origin.id","operator":"equals","values":["5f2a86db-a0cc-4aec-8e81-dec8f3606017","0d22217f-063a-4f85-a276-0b4277d481ae","395e2051-56f6-4916-813c-5c35955e7f28","319646dc-de82-4a00-a5e5-f3ed9f697e90","70e58ee0-c23c-446b-87e3-86a8e09dd219","dd675068-35ec-423f-93aa-3a93dcd08efc"]},{"member":"Deal.status","operator":"equals","values":["OPEN"]},{"member":"User.name","operator":"set"}],"timeDimensions":[{"dimension":"Deal.updatedAt","dateRange":["<A menos 3 dias>","HOJE"]}],"timezone":"America/Sao_Paulo","limit":15000}` → WORK/maos/donos.json
@@ -108,6 +111,12 @@ A planilha do comercial é a fonte oficial das vendas (é dela que sai o dash do
 
 ## 6. Segunda-feira: alertas da semana
 Só às segundas. Com WORK/ds/conversas.json e maos.json, compare a semana que terminou (segunda a domingo) com a anterior: quem quis conversar (classificação por mensagem), % respondidas em até 15 min úteis, sem resposta e sem vendedor responsável (por produto e vendedor), % que nunca recebeu proposta, % sem resposta do time, objeção nº 1, tempo de resposta por vendedor, compradores tratados como lead, pedido de dupla, variação de preço por vendedor. Escreva de 5 a 8 alertas novos no formato de `alertas.json` (campos id, data, produto, severidade Crítico|Atenção|Oportunidade, titulo, detalhe com números, dono), mantendo os da semana anterior que continuarem válidos. Suba como asset e atualize `datasets/alertas` como no passo 5.
+
+## 6b. Salvar o estado (obrigatório, depois de todos os passos que gravam em WORK/store)
+- `python3 WORK/estado.py pack --store WORK/store --out WORK/snap_novo`.
+- Suba cada arquivo de WORK/snap_novo como asset: `Artifact` publish com `url` do painel, `asset: true`, `file_path` = o arquivo. Anote o id de cada um.
+- Só se TODOS subiram: `ArtifactData update` em `radar_config/estado` com `if_version` = a versão lida no passo 0, `data` = `{"estado": {<nome do arquivo>: <id>, …}, "dados_ate": "<último dia processado>", "atualizado_em": "<agora ISO UTC>"}` (o campo `codigo` não muda). Se algum falhar, não mexa no ponteiro e registre no log: a próxima execução refaz a partir do estado anterior.
+- Não apague assets antigos (histórico; o Diego decide se limpa).
 
 ## 7. Log e fim
 - `ArtifactData set` em collection `radar_log`, doc_id = `<AAAAMMDD do dia processado>_<HHMMSS>`, data `{"dias": [...], "lidos": n, "validos": n, "faltaram": n, "maos": {"<dia>": {"levantadas": n, "sem_resposta": n}}, "erros": "…"}`.

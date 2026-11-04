@@ -222,7 +222,19 @@ def load_docs(path):
         try: d = json.load(open(f, encoding="utf-8"))
         except Exception: continue
         out.append((os.path.basename(f)[:-5], d))
-    return out
+    # documentos grandes divididos em partes (limite de 256 KB por documento): mesmo "grupo" vira um documento só, com o nome do grupo
+    grupos = {}
+    res = []
+    for name, d in out:
+        g = d.get("grupo") if isinstance(d, dict) else None
+        if not g: res.append((name, d)); continue
+        if g not in grupos:
+            base = dict(d); grupos[g] = base; res.append((g, base))
+        else:
+            base = grupos[g]
+            for k in ("linhas", "leads", "vendas"):
+                if isinstance(d.get(k), list): base[k] = list(base.get(k) or []) + d[k]
+    return res
 
 # ---------- objeção específica (o que é "preço", "pagamento"…) a partir do trecho dito pelo lead ----------
 import unicodedata
@@ -329,7 +341,8 @@ def cmd_datasets(a):
         sem, rot = semana(r["data"])
         base = {k: v for k, v in r.items() if k not in ("objecoes", "frases", "_doc", "lido_em")}
         base["semana"] = rot; base["semana_ini"] = sem
-        base.update(quem(por_rid.get(r["id"])))
+        _q = por_rid.get(r["id"])
+        if _q or not (base.get("email") or base.get("lead")): base.update(quem(_q))  # base reconstruída: mantém lead/e-mail já gravados
         v = audc.get(r["id"])
         if v:
             base["revisao"] = {"confirmado": "Confirmado na 2ª leitura", "corrigir": "Corrigido na 2ª leitura", "duvida": "Em dúvida: conferir no Clint"}.get(v.get("veredito"), "")
@@ -359,7 +372,9 @@ def cmd_datasets(a):
         sem, rot = semana(dia)
         for l in ls:
             p = pessoas.get(l.get("contato"))
-            l = {k: v for k, v in l.items() if k != "contato"}; l["semana"] = rot; l["semana_ini"] = sem; l.update(quem(p)); mrows.append(l)
+            l = {k: v for k, v in l.items() if k != "contato"}; l["semana"] = rot; l["semana_ini"] = sem
+            if p or not (l.get("email") or l.get("lead")): l.update(quem(p))  # base reconstruída: mantém lead/e-mail já gravados
+            mrows.append(l)
     os.makedirs(a.out, exist_ok=True)
     json.dump(mrows, open(os.path.join(a.out, "maos.json"), "w"), ensure_ascii=False)
     orows = origens_rows(a.store, "2026-10-01")  # origens começam em 1º/out (pedido do Diego)
@@ -1111,7 +1126,12 @@ def origens_rows(store, desde):
     """Linhas do dataset origens a partir de radar_origens (o documento mais novo de cada dia vale)."""
     por_dia = {}
     for name, d in sorted(load_docs(os.path.join(store, "radar_origens"))):
-        if d.get("dia") and d["dia"] >= desde: por_dia[d["dia"]] = d
+        if d.get("dia") and d["dia"] >= desde:
+            g = d.get("grupo"); prev = por_dia.get(d["dia"])
+            if g and prev is not None and prev.get("grupo") == g:  # documento dividido em partes (limite de 256 KB por documento)
+                prev = dict(prev); prev["leads"] = prev.get("leads", []) + d.get("leads", []); prev["vendas"] = prev.get("vendas", []) + d.get("vendas", [])
+                por_dia[d["dia"]] = prev
+            else: por_dia[d["dia"]] = d
     rows = []
     for dia, d in sorted(por_dia.items()):
         sem, rot = semana(dia)
