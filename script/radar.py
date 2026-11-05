@@ -1007,7 +1007,7 @@ def cmd_vendasplan(a):
     for cod, v in hp.items():
         cs = sorted({r["Deal.contactId"] for r in v if r.get("Deal.originId") in ORIG_COMPRA}) or sorted({r["Deal.contactId"] for r in v})
         contato[cod] = cs[0] if cs else ""
-    hist = collections.defaultdict(dict); acao_ct = {}; utm_any = collections.defaultdict(list)
+    hist = collections.defaultdict(dict); acao_ct = {}; utm_any = collections.defaultdict(list); acao_raw = {}
     for p in [x for x in a.hist.split(",") if x]:
         for r in rows_of(p):
             # UTM/rastreio de qualquer negócio do contato (3ª checagem)
@@ -1025,6 +1025,7 @@ def cmd_vendasplan(a):
             if cand and cand[0] not in SEM_CANAL and cand[1] != "Não identificado":
                 utm_any[r.get("Deal.contactId")].append(((r.get("Deal.createdAt") or "")[:19],) + cand)
             av = acao_valida(r.get("ContactFields.field_acao"))  # Ação do contato: vale de qualquer negócio (inclusive a própria compra)
+            if (r.get("ContactFields.field_acao") or "").strip(): acao_raw[r.get("Deal.contactId")] = r["ContactFields.field_acao"].strip()
             if av: acao_ct[r.get("Deal.contactId")] = av
             prod = ORIG_LEAD.get(r.get("Deal.originId"))
             if not prod: continue
@@ -1111,6 +1112,12 @@ def cmd_vendasplan(a):
         else:
             # último recurso: venda do comercial sem nenhum registro de origem no Clint -> cliente chegou direto ao vendedor
             orig0, canal, fonte_cn = canal, ORIGEM_PADRAO, "sem registro (padrão)"
+        # Regra da Sales Ops (05/11/2026): vale a Ação do contato como está hoje, classificada pelas regras dela; sem Ação, as checagens acima
+        cat_a, fonte_a, _ = categoria_final(acao_raw.get(c, ""), "") if c else (SEM_INFO, "", "")
+        if cat_a != SEM_INFO:
+            canal, fonte_cn, acao = cat_a, fonte_a, acao_raw.get(c, "")
+        else:
+            canal = RADAR_PARA_ACAO.get(canal, SEM_INFO)
         out.append({"dia": dia, "cod": cod, "c": _hash(c or cod), "produto": prod, "canal": canal, "acao": acao[:80], "campanha": camp,
                     "valor": _brl(r.get("Preço do Produto")), "vendedor": _vend(r.get("Vendedor")), "lead_desde": desde, "no_clint": bool(c),
                     "trafego": trafego, "fonte_canal": fonte_cn, "origem_original": orig0})
@@ -1125,7 +1132,8 @@ def cmd_vendasplan(a):
 def origens_rows(store, desde):
     """Linhas do dataset origens a partir de radar_origens (o documento mais novo de cada dia vale)."""
     por_dia = {}
-    for name, d in sorted(load_docs(os.path.join(store, "radar_origens"))):
+    # o documento mais novo de cada dia vale; os da régua da Sales Ops (origens_v3_salesops, desde 05/11/2026) sempre vencem os antigos
+    for name, d in sorted(load_docs(os.path.join(store, "radar_origens")), key=lambda x: (x[1].get("metodo") == "origens_v3_salesops", x[0])):
         if d.get("dia") and d["dia"] >= desde:
             g = d.get("grupo"); prev = por_dia.get(d["dia"])
             if g and prev is not None and prev.get("grupo") == g:  # documento dividido em partes (limite de 256 KB por documento)
@@ -1141,7 +1149,7 @@ def origens_rows(store, desde):
                 l.setdefault("fonte_canal", "acao"); l.setdefault("trafego", "Tráfego pago")
             rows.append({"id": f"l-{dia}-{i}", "tipo": "lead", "dia": dia, "semana": rot, "semana_ini": sem, "produto": l["produto"],
                          "canal": l["canal"], "acao": l.get("acao") or l.get("campanha") or "", "campanha": l.get("campanha", ""), "c": l["c"], "valor": None, "vendedor": "",
-                         "trafego": l.get("trafego") or trafego_de(l["canal"]), "fonte_canal": l.get("fonte_canal", ""), "confere": l.get("confere"), "achado": bool(l.get("trafego_achado"))})
+                         "trafego": l.get("trafego") or trafego_de(l["canal"]), "fonte_canal": l.get("fonte_canal", ""), "confere": l.get("confere"), "achado": bool(l.get("trafego_achado")), "lev": bool(l.get("lev")), "funil": l.get("funil", "")})
     # Vendas: a planilha do comercial é a fonte. Vale o documento mais novo; os dias que ela cobre substituem as vendas do Clint.
     plan = None
     pdir = os.path.join(store, "radar_vendas_plan")
@@ -1231,6 +1239,176 @@ def levantadas_rows(store):
         if d.get("dia"): por[d["dia"]] = d
     return [{"c": l["c"], "produto": l["produto"], "dia": dia} for dia, d in sorted(por.items()) for l in d.get("linhas", [])]
 
+
+# ---------- Regras da Sales Ops (relatório semanal da Júlia), adotadas pelo Diego em 05/11/2026 ----------
+# Lead = negócio (não pessoa). Base: ISD = funil Pré Checkout (5f2a86db); Protagon = Pré checkout (0d22217f) + Conexão (395e2051).
+# Exclui e-mail com "@grupovirtus" e "teste" no nome ou e-mail; duplicado = mesmo telefone e e-mail, mesmos acao, origem e
+# utm_content (todos preenchidos) e criação a menos de 1 min: fica o mais recente. Levantada de mão: Protagon = negócio no funil
+# Conexão (qualquer etapa); ISD = etapa Conexão, Negociação, Follow automático, Stand by ou Fechado. Origem = Ação do contato como
+# está no dia da extração, classificada pelas regras dela; sem Ação, vale a origem do negócio e depois as checagens do Radar
+# (UTM, outros negócios do contato, conversa aberta pelo próprio contato). Tags não entram (decisão do Diego).
+FUNIS_LEAD = {"5f2a86db-a0cc-4aec-8e81-dec8f3606017": "ISD", "0d22217f-063a-4f85-a276-0b4277d481ae": "Protagon",
+              "395e2051-56f6-4916-813c-5c35955e7f28": "Protagon"}
+FUNIL_CONEXAO_PRO = "395e2051-56f6-4916-813c-5c35955e7f28"
+ETAPAS_LEV_ISD = {"Conexão", "Negociação", "Follow automático", "Stand by", "Fechado"}
+ACAO_EXATA = {
+    "PRO-JOI-E035 - V3": "FORMS META", "PRO-JOI-E035- V3": "FORMS META", "PRO-JOI-E035- V2": "FORMS META",
+    "PRO-POA-E037 - V3": "FORMS META", "PRO-E039-SP-MET": "FORMS META", "ISD-E012 FORM META": "FORMS META",
+    "ISD-SP-E020 - M10K": "FORMS META",
+    "PRO-E038-GOI-GD-ILD": "INLEAD", "PRO-E037-POA-GD-ILD": "INLEAD", "PRO-E038-GOI-GD-ILD1": "INLEAD",
+    "CTW-REMARKETING": "CLICK TO WHATSAPP", "Live 20:20 02/09": "LIVE 20:20",
+    "PRO-E038-GOI-VDD-COM": "PÁGINA HÍBRIDA", "PRO-E037-POA-VDD-COM": "PÁGINA HÍBRIDA",
+    "PRO-E038-GOI-COM": "CAPTURA COMERCIAL", "PRO-E039-SP-COM": "CAPTURA COMERCIAL", "ISD-E020-SP-COM": "CAPTURA COMERCIAL",
+    "PRO-E037-POA-VDD-VND": "VENDA DIRETA", "PRO-E039-SP-VDD": "VENDA DIRETA", "PRO-E038-GOI-VDD-VND": "VENDA DIRETA",
+    "PRO-E038-GOI-VDD": "VENDA DIRETA", "PRO-E038-GOI-VDD-VDN-VIP": "VENDA DIRETA",
+    "WEBNARIO-28-10-26-PRO-MET-SP": "WEBNÁRIO",
+    "COLISEU-INSCRIÇÕES-ABERTAS-30-10-26": "COLISEU-INSCRIÇÕES-ABERTAS-30-10-26", "COLISEU [CL-E001] - V1": "COLISEU",
+    "isd_alphaville": "ALPHAVILLE", "indicacao isd": "INDICAÇÃO", "PROTAGON-OFERTA-ISD": "PROTAGON-OFERTA-ISD",
+}
+V8_CANAL = {"ILD": "INLEAD", "FNM": "FORMS META", "PGC": "CAPTURA COMERCIAL"}
+V8_FUNIL = {"VDD": "VENDA DIRETA", "COM": "CAPTURA COMERCIAL", "MET": "METEÓRICO", "W5L": "WEBNÁRIO", "WTI": "WEBNÁRIO",
+            "WIS": "WEBNÁRIO", "IND": "INDICAÇÃO"}
+ACAO_PALAVRAS = [("FORMS", "FORMS META"), ("COMERCIAL", "CAPTURA COMERCIAL"), ("VENDA DIRETA", "VENDA DIRETA"), ("INLEAD", "INLEAD"),
+                 ("ILD", "INLEAD"), ("WORKSHOP", "WEBNÁRIO"), ("WEB", "WEBNÁRIO"), ("METEORICO", "METEÓRICO"),
+                 ("METEÓRICO", "METEÓRICO"), ("REMARKETING", "REMARKETING")]
+RADAR_PARA_ACAO = {"Formulário nativo (Meta)": "FORMS META", "WhatsApp (chamou direto)": "WHATSAPP", "Anúncio para WhatsApp": "WHATSAPP",
+                   "Orgânico (redes do Wendell)": "SOCIAL", "Meteórico (Protagon)": "METEÓRICO", "Webinário": "WEBNÁRIO",
+                   "Inlead · geração de demanda": "INLEAD", "Inlead · venda direta": "INLEAD", "Venda direta (página de vendas)": "VENDA DIRETA",
+                   "Acesso direto (sem rastreio)": "VENDA DIRETA", "Oferta para alunos": "VENDA DIRETA", "Página comercial": "CAPTURA COMERCIAL",
+                   "Indicação": "INDICAÇÃO", "Remarketing": "REMARKETING"}
+SEM_INFO = "SEM INFORMAÇÃO"
+
+def acao_categoria(acao):
+    """Categoria da Ação pelas regras da Sales Ops. '' -> SEM INFORMAÇÃO; valor sem regra -> None."""
+    a = (acao or "").strip()
+    if not a or _norm(a) in ("SEM INFORMACAO",): return SEM_INFO
+    if "social" in a.lower(): return "SOCIAL"
+    if a in ACAO_EXATA: return ACAO_EXATA[a]
+    t = [x.strip().upper() for x in a.split("-")]
+    if len(t) >= 4 and t[0] in ("PRO", "ISD"):
+        resto = t[3:]
+        for i in range(len(resto) - 1):
+            if resto[i] == "VDD" and resto[i + 1] == "COM": return "PÁGINA HÍBRIDA"
+        for x in resto[1:]:
+            m = re.match(r"^(ILD|FNM|PGC)\d+$", x)
+            if m: return V8_CANAL[m.group(1)]
+        if resto[0] == "VDD" and "RMK" in resto[1:]: return "VENDA DIRETA REMARKETING"
+        if resto[0] in V8_FUNIL: return V8_FUNIL[resto[0]]
+    U = a.upper()
+    for k, v in ACAO_PALAVRAS:
+        if k in U: return v
+    return None
+
+def categoria_final(acao, origem):
+    """(categoria, fonte, valor_sem_regra). Ação do contato; sem Ação, a origem do negócio (regra f da Sales Ops)."""
+    c = acao_categoria(acao)
+    if c is None:
+        velha = RADAR_PARA_ACAO.get(origem_final(canal_de(acao)) or "")
+        return (velha, "acao (regra antiga do Radar)", (acao or "").strip()) if velha else ("SEM CLASSIFICAÇÃO", "acao sem regra", (acao or "").strip())
+    if c != SEM_INFO: return c, "acao", ""
+    o = (origem or "").strip()
+    if o:
+        co = acao_categoria(o)
+        if co and co != SEM_INFO: return co, "origem do negócio", ""
+        if co is None:
+            velha = RADAR_PARA_ACAO.get(origem_final(canal_de(o)) or "")
+            if velha: return velha, "origem do negócio", ""
+    return SEM_INFO, "", ""
+
+def _dedup_salesops(rows):
+    """Duplicado = mesmo telefone e e-mail, mesmos acao, origem e utm_content (preenchidos) e criação < 1 min: fica o mais recente."""
+    P = lambda s_: dt.datetime.fromisoformat((s_ or "")[:19])
+    def chave(r):
+        ks = [(r.get("Contact.phone") or "").strip(), (r.get("Contact.email") or "").strip().lower(), (r.get("ContactFields.field_acao") or "").strip(),
+              (r.get("DealFields.field_origem") or "").strip(), (r.get("DealFields.field_utm_content") or "").strip()]
+        return tuple(ks) if all(ks) else None
+    grupos = collections.defaultdict(list); fora = []
+    for r in rows:
+        k = chave(r)
+        (grupos[k].append(r) if k else fora.append(r))
+    manter = list(fora); dup = 0
+    for k, g in grupos.items():
+        g.sort(key=lambda r: r.get("Deal.createdAt") or "")
+        for i, r in enumerate(g):
+            if i + 1 < len(g) and (P(g[i + 1]["Deal.createdAt"]) - P(r["Deal.createdAt"])).total_seconds() < 60: dup += 1; continue
+            manter.append(r)
+    return manter, dup
+
+def cmd_leadsdia(a):
+    """Leads do dia pela régua da Sales Ops (um por negócio). --leads: negócios criados no dia nos funis de lead, com Stage.name,
+    utm_content, Contact.email/name/phone (usados só para excluir e deduplicar; não são gravados); --busca/--chats: checagens extras
+    do Radar para quem ficou SEM INFORMAÇÃO; --antigo: documentos anteriores do dia (para manter o tipo de tráfego já achado)."""
+    dia = a.dia
+    rows = []; vistos = set()
+    for p in [x for x in a.leads.split(",") if x]:
+        for r in rows_of(p):
+            if r.get("Deal.id") in vistos: continue
+            vistos.add(r.get("Deal.id")); rows.append(r)
+    rows = [r for r in rows if r.get("Deal.originId") in FUNIS_LEAD and (r.get("Deal.createdAt") or "")[:10] == dia]
+    exc = collections.Counter(); base = []
+    for r in rows:
+        em = (r.get("Contact.email") or "").lower(); nm = (r.get("Contact.name") or "").lower()
+        if "@grupovirtus" in em: exc["email_grupovirtus"] += 1; continue
+        if "teste" in em or "teste" in nm: exc["teste"] += 1; continue
+        base.append(r)
+    base, ndup = _dedup_salesops(base); exc["duplicados"] = ndup
+    antigo = {}
+    for p in [x for x in (getattr(a, "antigo", "") or "").split(",") if x]:
+        try: d0 = json.load(open(p, encoding="utf-8"))
+        except Exception: continue
+        for l in d0.get("leads", []):
+            if l.get("trafego"): antigo[(l["c"], l["produto"])] = l["trafego"]
+    busca = collections.defaultdict(list)
+    for p in [x for x in (getattr(a, "busca", "") or "").split(",") if x]:
+        for r in rows_of(p): busca[r.get("Deal.contactId")].append(r)
+    chl = collections.defaultdict(list)
+    for p in [x for x in (getattr(a, "chats", "") or "").split(",") if x]:
+        for r in rows_of(p):
+            if r.get("Contact.id") and _lead_abriu(r.get("Chat.createdAt") or "", r.get("Chat.firstCustumerMessageAt") or ""):
+                chl[r["Contact.id"]].append(r.get("Chat.firstCustumerMessageAt") or "")
+    out = []; sem_regra = collections.Counter(); precisa = set()
+    for r in sorted(base, key=lambda r: (r.get("Deal.createdAt") or "", r.get("Deal.id") or "")):
+        cid = r.get("Deal.contactId") or ""; prod = FUNIS_LEAD[r["Deal.originId"]]
+        acao = (r.get("ContactFields.field_acao") or "").strip(); orig = (r.get("DealFields.field_origem") or "").strip()
+        utm = (r.get("DealFields.field_utm_campaign") or "").strip(); med = r.get("DealFields.field_utm_medium") or ""
+        cat, fonte, sr = categoria_final(acao, orig)
+        if sr: sem_regra[sr] += 1
+        if cat == SEM_INFO:
+            c2 = RADAR_PARA_ACAO.get(canal_utm(utm, med, r.get("DealFields.field_utm_source")) or ("Orgânico (redes do Wendell)" if _organico(utm, med) else ""))
+            if c2: cat, fonte = c2, "UTM do negócio"
+        if cat == SEM_INFO:
+            achados = []
+            for b in busca.get(cid, []):
+                u = (b.get("DealFields.field_utm_campaign") or "").strip(); md = b.get("DealFields.field_utm_medium") or ""
+                cn2 = canal_de((b.get("DealFields.field_origem") or "").strip(), u, md, b.get("DealFields.field_utm_source"), "")
+                if cn2 in SEM_CANAL:
+                    cp, cd = sck_info(b.get("DealFields.field_sck_completo"))
+                    if cp: cn2 = canal_de("", cp, "paid", "", "")
+                    elif cd: cn2 = canal_codigo(cd)[0] or cn2
+                c3 = RADAR_PARA_ACAO.get(origem_final(cn2) or "")
+                if c3: achados.append(((b.get("Deal.createdAt") or "")[:10] <= dia, b.get("Deal.createdAt") or "", c3))
+            if achados: cat, fonte = sorted(achados)[-1][2], "outro negócio do contato"
+        if cat == SEM_INFO:
+            fm = [x for x in chl.get(cid, []) if x and x[:4] != "1970" and x[:10] <= dia]
+            if fm: cat, fonte = "WHATSAPP", "1ª conversa no WhatsApp"
+        if cat == SEM_INFO and orig and _norm(orig) not in ("SEM INFORMACAO",):
+            cat, fonte = orig.upper(), "origem do negócio (valor)"  # regra f da Sales Ops: sem nada, vale o valor do campo origem
+        if cat == SEM_INFO or fonte == "origem do negócio (valor)": precisa.add(cid)
+        cn_velho, _, _ = canal_lead(acao_valida(acao), orig, utm, med, r.get("DealFields.field_utm_source"), r.get("Deal.sourceLabel"))
+        traf = antigo.get((_hash(cid), prod)) or trafego_de(cn_velho, utm, med)
+        st = (r.get("Stage.name") or "").strip()
+        lev = (r["Deal.originId"] == FUNIL_CONEXAO_PRO) if prod == "Protagon" else (st in ETAPAS_LEV_ISD)
+        item = {"d": hashlib.sha1(("d" + (r.get("Deal.id") or "")).encode()).hexdigest()[:10], "c": _hash(cid), "produto": prod,
+                "acao": acao[:80] or orig[:80], "canal": cat, "fonte_canal": fonte, "trafego": traf, "lev": lev, "etapa": st[:40]}
+        if prod == "Protagon": item["funil"] = "Conexão" if r["Deal.originId"] == FUNIL_CONEXAO_PRO else "Pré checkout"
+        out.append(item)
+    if getattr(a, "precisa", ""): json.dump(sorted(x for x in precisa if x), open(a.precisa, "w"))
+    doc = {"dia": dia, "metodo": "origens_v3_salesops", "leads": out, "vendas": [], "excluidos": dict(exc), "sem_regra": dict(sem_regra)}
+    json.dump(doc, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    print(json.dumps({"dia": dia, "negocios": len(rows), "leads": len(out), "excluidos": dict(exc), "levantadas": sum(1 for x in out if x["lev"]),
+                      "por_canal": collections.Counter(x["canal"] for x in out).most_common(), "sem_regra": dict(sem_regra),
+                      "precisa_busca": len(precisa)}, ensure_ascii=False))
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); sp = ap.add_subparsers(dest="cmd", required=True)
     p = sp.add_parser("lotes"); [p.add_argument(x, required=True) for x in ("--origins", "--q1", "--q2", "--q3", "--dia", "--out")]; p.add_argument("--template")
@@ -1245,9 +1423,10 @@ if __name__ == "__main__":
     p = sp.add_parser("datasets"); [p.add_argument(x, required=True) for x in ("--store", "--out")]; p.add_argument("--desde", default="2026-10-23")
     p = sp.add_parser("revisar"); [p.add_argument(x, required=True) for x in ("--maos", "--aud", "--out")]
     p = sp.add_parser("origensdia"); [p.add_argument(x, required=True) for x in ("--leads", "--vendas", "--hist", "--dia", "--out")]; p.add_argument("--busca", default=""); p.add_argument("--precisa", default=""); p.add_argument("--resta", default=""); p.add_argument("--chats", default=""); p.add_argument("--semcanal", default=""); p.add_argument("--auditoria", default="")
+    p = sp.add_parser("leadsdia"); [p.add_argument(x, required=True) for x in ("--leads", "--dia", "--out")]; p.add_argument("--busca", default=""); p.add_argument("--chats", default=""); p.add_argument("--antigo", default=""); p.add_argument("--precisa", default="")
     p = sp.add_parser("vendasplan"); [p.add_argument(x, required=True) for x in ("--csv", "--hp", "--hist", "--desde", "--ate", "--out")]; p.add_argument("--chats", default="")
     p = sp.add_parser("reconf"); [p.add_argument(x, required=True) for x in ("--store", "--msgs", "--agora", "--desde", "--out")]; p.add_argument("--excl", default=""); p.add_argument("--ate", default="")
     p = sp.add_parser("levdoc"); [p.add_argument(x, required=True) for x in ("--q", "--dia", "--out")]
     p = sp.add_parser("contatos"); [p.add_argument(x, required=True) for x in ("--q", "--classe", "--dia", "--out")]
     a = ap.parse_args()
-    {"lotes": cmd_lotes, "merge": cmd_merge, "datasets": cmd_datasets, "pendentes": cmd_pendentes, "maos": cmd_maos, "conferir": cmd_conferir, "universo": cmd_universo, "classdoc": cmd_classdoc, "contatos": cmd_contatos, "revisar": cmd_revisar, "maos2": cmd_maos2, "verifdoc": cmd_verifdoc, "origensdia": cmd_origensdia, "vendasplan": cmd_vendasplan, "reconf": cmd_reconf, "levdoc": cmd_levdoc}[a.cmd](a)
+    {"lotes": cmd_lotes, "merge": cmd_merge, "datasets": cmd_datasets, "pendentes": cmd_pendentes, "maos": cmd_maos, "conferir": cmd_conferir, "universo": cmd_universo, "classdoc": cmd_classdoc, "contatos": cmd_contatos, "revisar": cmd_revisar, "maos2": cmd_maos2, "verifdoc": cmd_verifdoc, "origensdia": cmd_origensdia, "vendasplan": cmd_vendasplan, "reconf": cmd_reconf, "levdoc": cmd_levdoc, "leadsdia": cmd_leadsdia}[a.cmd](a)

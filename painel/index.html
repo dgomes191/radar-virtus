@@ -117,6 +117,8 @@
 [data-dash-source-state=empty] { color: transparent; }
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 @media (max-width: 40rem) { .rv-hide-narrow { display: none; } }
+/* Ocultos a pedido do Diego (05/11): explicação da Correção do dia, cabeçalho "O que as conversas mostram" e "Conversas lidas" (só não aparecem; dados e cálculos seguem iguais) */
+#dia > p.rv-note:first-of-type, #periodo, #conversas { display: none !important; }
 </style>
 
 <div class="rv" id="radar">
@@ -209,7 +211,7 @@
     </div>
     <p class="rv-note" id="n-regra" data-source="origens_regra">—</p>
     <h3 class="rv-sub">Por origem (campo Ação)</h3>
-    <p class="rv-note">As 11 origens do time, com leads, vendas, faturamento e conversão. O que não se encaixa em nenhuma depois de todas as checagens fica em "Origem não identificada".</p>
+    <p class="rv-note">Pela régua da Sales Ops (relatório semanal): um lead é um negócio criado no período (ISD: funil Pré Checkout; Protagon: Pré checkout e Conexão), sem e-mails do Grupo Virtus, testes e duplicados (mesmo telefone, e-mail, ação, origem e criativo em menos de 1 minuto). A origem é a Ação do contato como está no Clint no dia da atualização, agrupada pelas regras da Sales Ops; sem Ação, vale a origem do negócio e depois a UTM, outros negócios do contato e a conversa aberta pelo próprio contato. O que não se encaixa fica em "SEM INFORMAÇÃO".</p>
     <div class="rv-table-wrap">
       <table class="rv-table" id="t-origens" data-source="origens_canal" data-row-key="id">
         <thead><tr><th data-field="canal">Origem</th><th data-field="leads">Leads</th><th data-field="vendas">Vendas</th><th data-field="faturamento">Faturamento</th><th data-field="conversao">Conversão</th></tr></thead>
@@ -227,7 +229,7 @@
     </details>
     <details class="rv-det" id="det-semorig">
       <summary id="s-semorig">Vendas sem origem identificada: lista para conferir</summary>
-      <p class="rv-note">Uma linha por venda do período que ficou em "Origem não identificada", com o e-mail do comprador para procurar no Clint e o motivo. Venda que não chegou ao Clint não tem e-mail: procure pelo código HP na Hotmart.</p>
+      <p class="rv-note">Uma linha por venda do período que ficou sem origem identificada, com o e-mail do comprador para procurar no Clint e o motivo. Venda que não chegou ao Clint não tem e-mail: procure pelo código HP na Hotmart.</p>
       <div class="rv-table-wrap">
         <table class="rv-table" id="t-semorig" data-source="vendas_sem_origem" data-row-key="id">
           <thead><tr><th data-field="dia">Data</th><th data-field="lead">Comprador</th><th data-field="email">E-mail</th><th data-field="produto">Produto</th><th data-field="valor">Valor</th><th data-field="vendedor">Vendedor</th><th data-field="cod" class="rv-hide-narrow">Código HP</th><th data-field="motivo">Por que ficou sem origem</th></tr></thead>
@@ -235,7 +237,7 @@
         </table>
       </div>
     </details>
-    <p class="rv-note">Vendas, faturamento e vendedor vêm da planilha do comercial (a mesma do dash do comercial; produto pela coluna "Produto": IMERSÃO = ISD, PROTAGON = Protagon; Coliseu e 5 Liberdades ficam fora). A origem de cada venda vem do Clint, achando o comprador pelo código da transação (HP…); O comprador pode ter entrado antes do período; por isso uma origem pode ter mais vendas que leads, e aí a conversão aparece como —. A origem do lead vem do campo "Ação" do contato no Clint (regra do time); o campo "Origem" do negócio e a campanha do anúncio (utm_campaign) servem de conferência e de reserva quando a Ação está vazia ou é de outro produto. A Ação é a última do contato: de out/26 para trás ela foi lida hoje, e daqui para frente a rotina lê no dia em que o lead entra. Lead sem origem de tráfego é procurado na UTM ou no rastreio da compra de qualquer outro negócio do mesmo contato (qualquer funil, o mais recente até o dia); se ainda não houver nada e o contato escreveu no WhatsApp, entra como "WhatsApp (chamou direto)". Venda: Ação/Origem do lead do comprador → rastreio da própria compra (sck) → UTM de outro negócio do contato → 1ª conversa no WhatsApp aberta pelo próprio contato. Tags não entram. O dash usa só as 11 origens do time; disparo não é origem (vale a origem em que o contato já estava). Ordem de checagem: (1) campo Ação do contato; (2) Origem e campanha do anúncio (utm_campaign) do próprio negócio, que também servem de conferência da Ação; (3) UTM, campanha ou rastreio de qualquer outro negócio do contato; (4) conversa no WhatsApp aberta pelo próprio contato. O que não se encaixa em nenhuma das 11 origens depois disso entra como "Origem não identificada" (ex.: negócio criado à mão sem Ação, lead criado por disparo sem nenhuma outra origem, código da venda que não chegou ao Clint). "Não identificado" = nenhum negócio do contato tem campanha, origem paga ou social registrada no Clint.</p>
+    <p class="rv-note">Vendas, faturamento e vendedor vêm da planilha do comercial (a mesma do dash do comercial; produto pela coluna "Produto": IMERSÃO = ISD, PROTAGON = Protagon; Coliseu e 5 Liberdades ficam fora). A origem de cada venda vem do Clint, achando o comprador pelo código da transação (HP…); O comprador pode ter entrado antes do período; por isso uma origem pode ter mais vendas que leads, e aí a conversão aparece como —. Venda: a origem é a Ação do contato do comprador como está hoje no Clint, agrupada pelas regras da Sales Ops; sem Ação, vale a origem do lead do comprador, o rastreio da própria compra (sck), a UTM de outro negócio do contato e a 1ª conversa no WhatsApp aberta pelo próprio contato. Tags não entram. "Não identificado" (tipo de tráfego) = nenhum negócio do contato tem campanha, origem paga ou social registrada no Clint.</p>
   </section>
 
   <header class="rv-head" id="periodo">
@@ -586,29 +588,26 @@ rvCalc('objecoes_por_categoria', {
   },
 });
 
-const ORDEM_CANAL = ['Formulário nativo (Meta)', 'WhatsApp (chamou direto)', 'Orgânico (redes do Wendell)', 'Meteórico (Protagon)', 'Webinário', 'Inlead · geração de demanda', 'Inlead · venda direta', 'Venda direta (página de vendas)', 'Página comercial', 'Indicação', 'Remarketing', 'Origem não identificada'];
+const ORDEM_CANAL = ['METEÓRICO', 'WEBNÁRIO', 'FORMS META', 'CAPTURA COMERCIAL', 'PÁGINA HÍBRIDA', 'VENDA DIRETA', 'VENDA DIRETA REMARKETING', 'INLEAD', 'WHATSAPP', 'CLICK TO WHATSAPP', 'SOCIAL', 'INDICAÇÃO', 'REMARKETING', 'LIVE 20:20', 'SEM CLASSIFICAÇÃO', 'SEM INFORMAÇÃO'];
+const ordemCanal = (c) => { const i = ORDEM_CANAL.indexOf(c); return i < 0 ? ORDEM_CANAL.length - 2.5 : i; };
 const recorte = (origens, periodo, produto) => {
-  // Leads que entraram no período (um por pessoa e produto) e vendas do comercial feitas no período, na origem por onde o comprador entrou.
-  const leads = new Map();
-  origens.filter((r) => r.tipo === 'lead' && noPer(r, periodo, 'dia') && naProd(r, produto)).forEach((r) => { const k = r.c + '|' + r.produto; if (!leads.has(k)) leads.set(k, r); });
+  // Leads criados no período (um por negócio, régua da Sales Ops) e vendas do comercial feitas no período, na origem do comprador.
+  const leads = origens.filter((r) => r.tipo === 'lead' && noPer(r, periodo, 'dia') && naProd(r, produto));
   const vendas = origens.filter((r) => r.tipo === 'venda' && noPer(r, periodo, 'dia') && naProd(r, produto));
-  return { leads: [...leads.values()], vendas };
+  return { leads, vendas };
 };
 const somaR = (vs) => Math.round(vs.reduce((s, v) => s + (v.valor || 0), 0));
 rvCalc('dia_leads', {
-  inputs: ['maos', 'origens', 'levantadas'],
+  inputs: ['maos', 'origens'],
   title: 'Funil do atendimento: leads e levantada de mão',
-  description: 'Para cada período e produto: leads que entraram no Clint (um por pessoa e produto; o mesmo número do bloco Leads e vendas por origem) e, desses, quantos levantaram a mão pela régua da Sales Ops: o negócio de lead está hoje em Conexão ou em etapa posterior (ISD: Conexão, Negociação, Follow automático, Stand by, Fechado; Protagon: Conexão, Negociação, Follow up, Stand by, Compra fechada; no funil de sessão aberta do Protagon, Conexão não conta porque todo negócio nasce nela), qualquer status. Também diz se a leitura das mensagens (tempo de resposta) cobre o período.',
-  fn: (maos, origens, levantadas) => {
+  description: 'Para cada período e produto, pela régua da Sales Ops: leads = negócios criados no período (ISD: funil Pré Checkout; Protagon: Pré checkout e Conexão), sem e-mails do Grupo Virtus, testes e duplicados; levantada de mão = Protagon: negócio no funil Conexão, em qualquer etapa; ISD: negócio hoje em Conexão, Negociação, Follow automático, Stand by ou Fechado, qualquer status. Também diz se a leitura das mensagens (tempo de resposta) cobre o período.',
+  fn: (maos, origens) => {
     const ini = maos.map((x) => x.dia).filter(Boolean).sort()[0] || '';
     const antes = origens.filter((r) => r.tipo === 'lead' && r.dia < ini);
-    const lv = new Set(levantadas.map((r) => r.c + '|' + r.produto + '|' + r.dia));
     const out = [];
     periodosDe(maos, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
       const ls = origens.filter((r) => r.tipo === 'lead' && noPer(r, periodo, 'dia') && naProd(r, produto));
-      const pessoas = new Set(ls.map((r) => r.c + '|' + r.produto));
-      const maos_ = new Set(ls.filter((r) => lv.has(r.c + '|' + r.produto + '|' + r.dia)).map((r) => r.c + '|' + r.produto));
-      out.push({ id: periodo + '|' + produto, periodo, produto, leads: pessoas.size, levantadas: maos_.size, desde: ini, cobre: !antes.some((r) => noPer(r, periodo, 'dia')) });
+      out.push({ id: periodo + '|' + produto, periodo, produto, leads: ls.length, levantadas: ls.filter((r) => r.lev === true || r.lev === 'true').length, desde: ini, cobre: !antes.some((r) => noPer(r, periodo, 'dia')) });
     }));
     return out;
   },
@@ -616,7 +615,7 @@ rvCalc('dia_leads', {
 rvCalc('origens_kpis', {
   inputs: ['origens'],
   title: 'Leads e vendas por origem: totais',
-  description: 'Para cada período e produto: leads que entraram (um por pessoa e produto), vendas do comercial no período, faturamento e conversão (vendas ÷ leads).',
+  description: 'Para cada período e produto: leads criados (um por negócio, régua da Sales Ops), vendas do comercial no período, faturamento e conversão (vendas ÷ leads).',
   fn: (origens) => {
     const out = [];
     periodosDe(origens, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
@@ -629,17 +628,16 @@ rvCalc('origens_kpis', {
 rvCalc('origens_canal', {
   inputs: ['origens'],
   title: 'Leads e vendas por origem',
-  description: 'Para cada período, produto e origem (Forms nativo, Venda direta/Inlead, webinário…): leads que entraram, vendas do comercial creditadas à origem do comprador, faturamento e conversão (vendas ÷ leads).',
+  description: 'Para cada período, produto e origem (Ação do contato agrupada pelas regras da Sales Ops): leads que entraram, vendas do comercial creditadas à origem do comprador, faturamento e conversão (vendas ÷ leads).',
   fn: (origens) => {
     const out = [];
     periodosDe(origens, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
       const { leads, vendas } = recorte(origens, periodo, produto);
-      // as duas linhas do Inlead aparecem sempre, mesmo zeradas, para a ausência de leads ficar visível
-      const canais = new Set(['Inlead · geração de demanda', 'Inlead · venda direta', ...leads.map((r) => r.canal), ...vendas.map((v) => v.canal)]);
+      const canais = new Set([...leads.map((r) => r.canal), ...vendas.map((v) => v.canal)]);
       canais.forEach((canal) => {
         const nl = leads.filter((r) => r.canal === canal).length; const vs = vendas.filter((v) => v.canal === canal);
-        const semReg = (r) => r.fonte_canal === 'sem registro (padrão)';
-        out.push({ id: periodo + '|' + produto + '|' + canal, periodo, produto, canal, ordem: ORDEM_CANAL.indexOf(canal), leads: nl, vendas: vs.length, faturamento: somaR(vs), conversao: nl && vs.length <= nl ? vs.length / nl : null,
+        const semReg = (r) => r.canal === 'SEM INFORMAÇÃO';
+        out.push({ id: periodo + '|' + produto + '|' + canal, periodo, produto, canal, ordem: ordemCanal(canal), leads: nl, vendas: vs.length, faturamento: somaR(vs), conversao: nl && vs.length <= nl ? vs.length / nl : null,
           leads_sem_registro: leads.filter((r) => r.canal === canal && semReg(r)).length, vendas_sem_registro: vs.filter(semReg).length });
       });
     }));
@@ -852,7 +850,7 @@ rvCalc('origens_acoes', {
     document.getElementById('kd-leads-note').textContent = 'leads que entraram no Clint no período (o mesmo número de Leads e vendas por origem)';
     bar('kb-leads', nl || 0); bar('kb-lev', lev || 0); bar('kb-15', lr && lr.cobre ? n15 : 0); bar('kb-sem', lr && lr.cobre ? sem : 0);
     document.getElementById('kd-lev').textContent = lev == null ? '—' : fmtInt(lev);
-    document.getElementById('kd-fora').textContent = 'leads do período que hoje estão em Conexão ou etapa posterior (régua da Sales Ops), qualquer status';
+    document.getElementById('kd-fora').textContent = 'Protagon: negócios no funil Conexão; ISD: negócios hoje em Conexão ou etapa posterior (régua da Sales Ops)';
     document.getElementById('kd-conx').textContent = nl ? fmtPct1(lev / nl) : '—';
     document.getElementById('kd-conx-note').textContent = 'levantadas de mão ÷ leads totais (régua da Sales Ops)';
     document.getElementById('kd-15').textContent = r.pct_ate15 == null ? '—' : fmtPct(r.pct_ate15);
@@ -1092,7 +1090,7 @@ rvCalc('origens_acoes', {
       fillTable('t-origens', rows, [
         (td, x) => {
           td.textContent = x.canal; td.style.fontWeight = '600';
-          if (x.canal !== 'Origem não identificada' && (x.leads_sem_registro || x.vendas_sem_registro)) {
+          if (false && (x.leads_sem_registro || x.vendas_sem_registro)) {
             const n = document.createElement('div'); n.className = 'rv-kpi-note'; n.style.fontWeight = '400';
             n.textContent = 'inclui sem registro no Clint: ' + fmtInt(x.leads_sem_registro) + ' leads · ' + fmtInt(x.vendas_sem_registro) + ' vendas';
             td.appendChild(n);
