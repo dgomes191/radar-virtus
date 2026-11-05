@@ -117,6 +117,8 @@
 [data-dash-source-state=empty] { color: transparent; }
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 @media (max-width: 40rem) { .rv-hide-narrow { display: none; } }
+/* Ocultos a pedido do Diego (05/11): explicação da Correção do dia, cabeçalho "O que as conversas mostram" e "Conversas lidas" (só não aparecem; dados e cálculos seguem iguais) */
+#dia > p.rv-note:first-of-type, #periodo, #conversas { display: none !important; }
 </style>
 
 <div class="rv" id="radar">
