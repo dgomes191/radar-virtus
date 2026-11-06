@@ -20,7 +20,7 @@
   display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); color: var(--vt-fg);
   background: var(--vt-bg); border-radius: 16px; padding: 0 0 var(--cds-pad-lg); overflow: hidden;
 }
-.rv > :not(.rv-hero) { margin-inline: clamp(12px, 2.5vw, 24px); }
+.rv > :not(.rv-top):not(.rv-hero) { margin-inline: clamp(12px, 2.5vw, 24px); }
 .rv-head { display: grid; gap: var(--cds-gap-sm); }
 .rv-hero { background: var(--vt-hero); color: var(--vt-hero-fg); padding: clamp(28px, 5vw, 48px) clamp(16px, 3vw, 32px) clamp(22px, 4vw, 36px); gap: 14px; position: relative; overflow: hidden; }
 .rv-hero::before, .rv-hero::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; border: 1px solid color-mix(in srgb, var(--vt-gold) 32%, transparent); }
@@ -119,32 +119,77 @@
 @media (max-width: 40rem) { .rv-hide-narrow { display: none; } }
 /* Ocultos a pedido do Diego (05/11): explicação da Correção do dia, cabeçalho "O que as conversas mostram" e "Conversas lidas" (só não aparecem; dados e cálculos seguem iguais) */
 #dia > p.rv-note:first-of-type, #periodo, #conversas { display: none !important; }
+/* ===== UX v42 (06/11): cabeçalho compacto, telas separadas, notas recolhidas ===== */
+.rv { gap: var(--cds-gap-lg); border-radius: 14px; }
+.rv > :not(.rv-top):not(.rv-hero) { margin-inline: clamp(10px, 2vw, 20px); }
+#dia .rv-inner { background: var(--vt-surface); }
+.rv-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; background: var(--vt-hero); color: var(--vt-hero-fg); padding: 12px clamp(12px, 2vw, 20px); border-bottom: 2px solid var(--vt-gold); }
+@media (min-width: 52rem) { .rv-top { position: sticky; top: 0; z-index: 6; } }
+.rv-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.rv-logo { width: 14px; height: 14px; border-radius: 3px; background: var(--vt-gold); transform: rotate(45deg); flex: none; }
+.rv-brand-txt { display: grid; gap: 1px; min-width: 0; }
+.rv-top .rv-title { font-size: 19px; line-height: 1.15; font-weight: 600; letter-spacing: 0; }
+.rv-top .rv-eyebrow { font-size: 10.5px; letter-spacing: .08em; color: var(--vt-hero-muted); font-weight: 500; }
+.rv-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.rv-seg { display: inline-flex; padding: 2px; gap: 2px; border-radius: 999px; background: color-mix(in srgb, var(--vt-hero-fg) 8%, transparent); }
+.rv-seg .rv-chip { border: 0; background: transparent; color: var(--vt-hero-fg); padding: 4px 11px; font-size: 12.5px; }
+.rv-seg .rv-chip[aria-pressed="true"] { background: var(--vt-gold); color: #17201b; font-weight: 600; }
+.rv-datas { display: inline-flex; gap: 6px; align-items: center; }
+.rv-top .rv-data { color: var(--vt-hero-muted); font-size: 12px; gap: 4px; }
+.rv-top .rv-date { padding: 3px 8px; font-size: 12px; }
+.rv-nav { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 2px 4px; border-bottom: 1px solid var(--vt-line); }
+.rv-navb { font: inherit; font-size: 14px; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 8px 14px; color: var(--vt-muted); cursor: pointer; }
+.rv-navb[aria-selected="true"] { color: var(--vt-fg); border-bottom-color: var(--vt-gold); font-weight: 600; }
+.rv-navb:focus-visible { outline: 2px solid var(--vt-gold); outline-offset: 2px; }
+.rv-nav-per { margin-left: auto; padding: 0 4px 8px; }
+.rv-screen { display: grid; gap: var(--cds-gap-md); min-width: 0; }
+[data-pg][hidden] { display: none !important; }
+.rv-screen > .rv-sec { font-size: clamp(18px, 2.2vw, 22px); }
+.rv-kpi-value { font-size: clamp(22px, 2.6vw, 28px); }
+.rv-fstep, .rv-kpi { padding: 12px 14px; }
+.rv-card { padding: clamp(14px, 2vw, 20px); }
+.rv-card h2 { font-size: 16px; }
+.rv-table-wrap { max-height: 28rem; }
+.rv-note.rv-clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+.rv-note.rv-clamp::after { content: ""; }
+.rv-note.rv-clamp.rv-open { display: block; -webkit-line-clamp: unset; }
+.rv-note.rv-clamp:not(.rv-open):hover { color: var(--vt-fg); }
+#origens .rv-tables2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: var(--cds-gap-md); align-items: start; }
 </style>
 
 <div class="rv" id="radar">
-  <header class="rv-head rv-hero" id="topo">
-    <span class="rv-eyebrow">Grupo Virtus · Receitas · atualizado todo dia às 7h</span>
-    <h1 class="rv-title">Radar de Conversas Virtus</h1>
-    <p class="rv-take">Escolha o produto e as datas (de/até, ou um atalho): o painel inteiro muda junto. Só entra quem levantou a mão ou conversou de verdade: respostas automáticas e cliques de "encerrar contato" ficam de fora.</p>
-    <div class="rv-bar" role="group" aria-label="Produto">
-      <button class="rv-chip" type="button" data-prod="Todos" aria-pressed="true">Todos</button>
-      <button class="rv-chip" type="button" data-prod="ISD" aria-pressed="false">ISD</button>
-      <button class="rv-chip" type="button" data-prod="Protagon" aria-pressed="false">Protagon</button>
+  <header class="rv-top" id="topo">
+    <div class="rv-brand">
+      <span class="rv-logo" aria-hidden="true"></span>
+      <div class="rv-brand-txt"><h1 class="rv-title">Radar de Conversas</h1><span class="rv-eyebrow">Grupo Virtus · Receitas · dados até ontem, atualizado às 7h</span></div>
     </div>
-    <div class="rv-bar" role="group" aria-label="Período" id="g-pmodo">
-      <button class="rv-chip" type="button" data-pmodo="U" aria-pressed="true">Último dia</button>
-      <button class="rv-chip" type="button" data-pmodo="7" aria-pressed="false">Últimos 7 dias</button>
-      <button class="rv-chip" type="button" data-pmodo="M" aria-pressed="false">Este mês</button>
-      <button class="rv-chip" type="button" data-pmodo="T" aria-pressed="false">Tudo</button>
+    <div class="rv-filters">
+      <div class="rv-seg" role="group" aria-label="Produto">
+        <button class="rv-chip" type="button" data-prod="Todos" aria-pressed="true">Todos</button>
+        <button class="rv-chip" type="button" data-prod="ISD" aria-pressed="false">ISD</button>
+        <button class="rv-chip" type="button" data-prod="Protagon" aria-pressed="false">Protagon</button>
+      </div>
+      <div class="rv-seg" role="group" aria-label="Período" id="g-pmodo">
+        <button class="rv-chip" type="button" data-pmodo="U" aria-pressed="true">Último dia</button>
+        <button class="rv-chip" type="button" data-pmodo="7" aria-pressed="false">7 dias</button>
+        <button class="rv-chip" type="button" data-pmodo="M" aria-pressed="false">Mês</button>
+        <button class="rv-chip" type="button" data-pmodo="T" aria-pressed="false">Tudo</button>
+      </div>
+      <div class="rv-datas">
+        <label class="rv-data">De <input type="date" id="f-de" class="rv-date" min="2026-10-01" aria-label="Data inicial"></label>
+        <label class="rv-data">até <input type="date" id="f-ate" class="rv-date" min="2026-10-01" aria-label="Data final"></label>
+      </div>
     </div>
-    <div class="rv-bar rv-datas">
-      <label class="rv-data">De <input type="date" id="f-de" class="rv-date" min="2026-10-01" aria-label="Data inicial"></label>
-      <label class="rv-data">Até <input type="date" id="f-ate" class="rv-date" min="2026-10-01" aria-label="Data final"></label>
-    </div>
-    <p class="rv-period">Mostrando: <strong id="p-atual">—</strong> · vale para o painel inteiro</p>
   </header>
 
-  <section class="rv-card rv-day" id="dia">
+  <nav class="rv-nav" role="tablist" aria-label="Telas do painel">
+    <button class="rv-navb" role="tab" type="button" id="nav-atend" data-tela="atend" aria-selected="true">Atendimento</button>
+    <button class="rv-navb" role="tab" type="button" id="nav-orig" data-tela="orig" aria-selected="false">Leads e vendas</button>
+    <button class="rv-navb" role="tab" type="button" id="nav-conv" data-tela="conv" aria-selected="false">Conversas e objeções</button>
+    <p class="rv-period rv-nav-per">Mostrando <strong id="p-atual">—</strong></p>
+  </nav>
+
+  <section class="rv-screen" id="dia" data-pg="atend">
     <h2 class="rv-sec" id="h-dia">Correção do dia</h2>
     <p class="rv-note">Todo lead de ISD e Protagon que escreveu no dia tem a mensagem lida e classificada: <strong>quer conversar</strong> (pediu preço, link, condição, falar com alguém, fez pergunta ou disse que quer), <strong>só reengajou</strong> ("To aqui!", "Sim, fui eu") ou <strong>saiu</strong> ("Encerrar contato", "Não tenho interesse"). Também ficam fora da conta quem clicou num botão e a automação já entregou o que pediu (link da aula, link de compra) mensagens que não pedem resposta (recusa, "eu aviso", só confirmação, resposta a pergunta da automação como "Primeira experiência" ou "É uma prioridade") e pedidos de suporte de quem já é aluno ou ganhou ingresso. Quem ficou "sem resposta" é reconferido no Clint a cada dia, com as mensagens do time até a hora da conferência: se o vendedor respondeu depois, passa para a faixa de espera real. Tempo de resposta e cobrança valem só para quem quer conversar. A espera conta só o horário de atendimento (seg a sáb, 8h às 20h). Erro de processo = lead sem vendedor responsável ou atendido só pela IA; o resto é erro de vendedor. Método novo desde 23/out.</p>
     <section class="rv-funil" aria-label="Funil do atendimento">
@@ -192,7 +237,7 @@
     </section>
   </section>
 
-  <section class="rv-card" id="origens">
+  <section class="rv-card rv-screen" id="origens" data-pg="orig" hidden>
     <h2 class="rv-sec" id="h-origens">Leads e vendas por origem</h2>
     <p class="rv-note">Leads que entraram no período e vendas do comercial feitas no período, cada venda na origem por onde o comprador entrou no Clint. Começa em 1º/out; dados até ontem.</p>
     <section class="rv-funil" aria-label="Funil do comercial">
@@ -245,7 +290,7 @@
     <p class="rv-period">Base acumulada: <strong id="p-range" data-source="periodo" data-field="intervalo">—</strong> · <span id="p-n" data-source="periodo" data-field="conversas">—</span> conversas lidas no Clint (leads com 3 ou mais mensagens)</p>
   </header>
 
-  <section class="rv-card" id="alertas">
+  <section class="rv-card" id="alertas" data-pg="conv" hidden>
     <h2>Alertas da semana</h2>
     <p class="rv-note">O que as conversas mostram que precisa de decisão. Críticos primeiro.</p>
     <div class="rv-table-wrap">
@@ -256,7 +301,7 @@
     </div>
   </section>
 
-  <section class="rv-card" id="base">
+  <section class="rv-card" id="base" data-pg="conv" hidden>
     <h2>Pedidos de atendimento, por semana</h2>
     <p class="rv-note">Leads que escreveram querendo conversar ou comprar e como o time respondeu, semana a semana. Espera em horário útil. Começa em 23/out (método novo).</p>
     <div class="rv-table-wrap">
@@ -267,12 +312,12 @@
     </div>
   </section>
 
-  <div class="rv-tabs" role="tablist" aria-label="Grupo de leads">
+  <div class="rv-tabs" role="tablist" aria-label="Grupo de leads" data-pg="conv" hidden>
     <button class="rv-tab" role="tab" type="button" id="tab-c" data-aba="Compraram" aria-selected="false" aria-controls="painel">Compraram <span class="rv-tab-n" id="n-c" data-source="kpis" data-field="conversas">—</span></button>
     <button class="rv-tab" role="tab" type="button" id="tab-n" data-aba="Não compraram" aria-selected="true" aria-controls="painel">Não compraram <span class="rv-tab-n" id="n-n" data-source="kpis" data-field="conversas">—</span></button>
   </div>
 
-  <div class="rv-panel" id="painel" role="tabpanel" aria-labelledby="tab-c">
+  <div class="rv-panel" id="painel" role="tabpanel" aria-labelledby="tab-c" data-pg="conv" hidden>
     <section class="rv-kpis" id="numeros" aria-label="Números do grupo">
       <div class="rv-kpi"><span class="rv-kpi-label">Conversas</span><span class="rv-kpi-value dash-skeleton" id="k-conv" data-source="kpis" data-field="conversas">—</span><span class="rv-kpi-note" id="k-conv-note">conversas de verdade lidas no grupo e produto escolhidos</span></div>
       <div class="rv-kpi"><span class="rv-kpi-label">Horas até o 1º vendedor (conversas lidas)</span><span class="rv-kpi-value dash-skeleton" id="k-horas" data-source="kpis" data-field="mediana_horas">—</span><span class="rv-kpi-note">mediana, da 1ª mensagem do lead</span></div>
@@ -1148,7 +1193,31 @@ rvCalc('origens_acoes', {
   const dm2 = (d) => d.slice(8, 10) + '/' + d.slice(5, 7);
   const fmtPct1 = (v) => (v == null ? '—' : (v < 0.1 && v > 0 ? d3.format('.1%')(v) : d3.format('.0%')(v)).replace('.', ','));
 
+  // Telas (Atendimento, Leads e vendas, Conversas) e notas recolhidas: só mostram/escondem, os dados e as contas não mudam.
+  const TELAS = ['atend', 'orig', 'conv'];
+  const telaNow = () => (TELAS.includes(dash.params().tela) ? dash.params().tela : 'atend');
+  const navs = [...document.querySelectorAll('.rv-navb')];
+  navs.forEach((b, i) => {
+    b.addEventListener('click', () => { dash.setParams({ tela: b.dataset.tela }); try { dash.setLink(b.dataset.tela); } catch (e) { /* sem link */ } });
+    b.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const nx = navs[(i + (e.key === 'ArrowRight' ? 1 : navs.length - 1)) % navs.length]; nx.focus(); nx.click();
+    });
+  });
+  try { const h = (location.hash || '').slice(1); if (TELAS.includes(h) && !dash.params().tela) dash.setParams({ tela: h }); } catch (e) { /* sem hash */ }
+  function drawTela() {
+    const t = telaNow();
+    document.querySelectorAll('#radar [data-pg]').forEach((el) => { el.hidden = el.dataset.pg !== t; });
+    navs.forEach((b) => { const on = b.dataset.tela === t; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+  }
+  document.querySelectorAll('#radar .rv-card .rv-note, #radar .rv-screen > .rv-note').forEach((n) => {
+    if (n.id === 'n-regra' || (n.textContent || '').length < 140) return;
+    n.classList.add('rv-clamp'); n.title = 'Clique para ler tudo';
+    n.addEventListener('click', () => n.classList.toggle('rv-open'));
+  });
+
   dash.onData(() => {
+    try { drawTela(); } catch (e) { console.error(e); }
     [drawChrome, drawPeriodo, drawKpis, drawAlertas, drawOrigens, drawSemOrig, drawRecortes].concat(document.getElementById('dia') ? [drawDia, drawFaixas, drawDVend, drawCasos] : []).concat(document.getElementById('t-base') ? [drawBase] : []).forEach((f) => { try { f(); } catch (e) { console.error(e); } });
     const col = abaNow() === 'Compraram' ? 'var(--vt-accent)' : 'var(--vt-gold)';
     barChart('c-caminhos', 'caminhos', col);
