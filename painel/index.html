@@ -185,7 +185,7 @@
       </div>
       <div class="rv-table-wrap">
         <table class="rv-table" id="t-casos" data-source="dia_casos" data-row-key="id">
-          <thead><tr><th data-field="hora">Hora</th><th data-field="lead">Lead</th><th data-field="email">E-mail</th><th data-field="produto">Produto</th><th data-field="vendedor">Vendedor</th><th data-field="tipo">Erro de</th><th data-field="problema">Problema</th><th data-field="espera">Espera</th><th data-field="msg">O que o lead mandou</th><th data-field="detalhe" class="rv-hide-narrow">Contexto da conversa</th><th data-field="revisao" class="rv-hide-narrow">Revisão</th></tr></thead>
+          <thead><tr><th data-field="hora">Hora</th><th data-field="produto">Produto</th><th data-field="vendedor">Vendedor</th><th data-field="tipo">Erro de</th><th data-field="problema">Problema</th><th data-field="espera">Espera</th><th data-field="msg">O que o lead mandou</th><th data-field="detalhe" class="rv-hide-narrow">Contexto da conversa</th><th data-field="revisao" class="rv-hide-narrow">Revisão</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -903,7 +903,7 @@ rvCalc('origens_acoes', {
     if (o.status !== 'ok') return;
     const rows = o.data.filter((r) => noPer(r, perNow(), 'dia') && (prodNow() === 'Todos' || r.produto === prodNow()) && (!tipoErro || r.tipo === tipoErro))
       .sort((a, b) => b.peso - a.peso || (b.espera ?? 0) - (a.espera ?? 0) || (a.hora > b.hora ? 1 : -1));
-    fillTable('t-casos', rows, [(td, r) => { td.textContent = r.dia.slice(8, 10) + '/' + r.dia.slice(5, 7) + (r.hora ? ' ' + r.hora : ''); td.style.whiteSpace = 'nowrap'; }, txt('lead'), txt('email'), txt('produto'), txt('vendedor'),
+    fillTable('t-casos', rows, [(td, r) => { td.textContent = r.dia.slice(8, 10) + '/' + r.dia.slice(5, 7) + (r.hora ? ' ' + r.hora : ''); td.style.whiteSpace = 'nowrap'; }, txt('produto'), txt('vendedor'),
       (td, r) => { td.textContent = r.tipo; td.className = r.tipo === 'Processo' ? 'rv-err-p' : 'rv-err-v'; },
       txt('problema'), (td, r) => num(td, r.espera, fmtMin), (td, r) => { td.textContent = r.msg ? '“' + r.msg + '”' : (r.hora ? 'ainda não conferido' : ''); if (!r.msg) td.style.color = 'var(--color-fg-muted)'; }, txt('detalhe', 'rv-hide-narrow'), txt('revisao', 'rv-hide-narrow')], (r) => r.id);
   }
