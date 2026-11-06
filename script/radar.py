@@ -1186,6 +1186,7 @@ def cmd_reconf(a):
     hum = collections.defaultdict(list)
     for f in a.msgs.split(","):
         for r in rows_of(f):
+            if r.get("Message.source") not in (None, "Chat", "Fora da Clint"): continue  # automação/IA não é resposta do time
             t = r.get("Message.createdAt.minute") or r.get("Message.createdAt")
             if t and r.get("Contact.id"): hum[r["Contact.id"]].append((P(t), nome_vend(r.get("User.name"))))
     for v in hum.values(): v.sort()
@@ -1415,6 +1416,65 @@ def cmd_leadsdia(a):
                       "por_canal": collections.Counter(x["canal"] for x in out).most_common(), "sem_regra": dict(sem_regra),
                       "precisa_busca": len(precisa)}, ensure_ascii=False))
 
+
+# ---------- botoes: cliques em botão de disparo (regra do Diego, 06/11/2026) ----------
+# Só para quem está "Sem resposta" ou "Só a IA respondeu". A mensagem do lead é dividida em partes (" | " e " / ").
+# (a) Todas as partes são botões que pedem algo que a automação entrega (link, vaga, detalhes) e a automação mandou mensagem
+#     depois: tipo "Automação atendeu" (sai da conta). (b) Alguma parte é botão que pede gente ("Falar no whatsapp",
+#     "Prefiro por mensagem", "Pode me ligar"…) e nenhum vendedor escreveu, ou o botão pedia algo e nem a automação respondeu em
+#     30 min: continua sem resposta, mas como ERRO DE PROCESSO (o fluxo deveria entregar ou passar para alguém). (c) Qualquer texto escrito pelo lead: continua como erro de vendedor.
+BOTAO_PEDE_GENTE = {"falar no whatsapp", "falar com o atendente", "falar com atendente", "pode me ligar", "prefiro por mensagem",
+                    "tenho uma duvida", "prefiro ligacao"}
+BOTAO_PEDE_ALGO = {"quero o link", "sim, pode", "sim", "garantir vaga", "garantir minha vaga", "quero garantir minha vaga",
+                   "quero ir no protagon", "quero ir no isd", "me envie as informacoes", "quero meu desconto", "quero saber os detalhes",
+                   "quero saber mais", "quero conhecer a condicao", "me conta a condicao", "garantir minha oferta", "confirmar vaga",
+                   "aproveitar a oferta", "eu quero", "eu quero!", "quero minha vaga", "ja sei", "executivo", "instagram",
+                   "quero participar do protagon goiania", "quero participar do protagon sao paulo",
+                   "quero participar do protagon em porto alegre", "quero participar do protagon", "aplicar meu cupom", "acessar informacoes"}
+def _partes_msg(msg):
+    m = re.sub(r"\s*\((conversa|chat)[^)]*\)\s*$", "", msg or "")
+    return [_N(x).strip(" .!") for x in re.split(r"\s*\|\s*|\s+/\s+", m) if x.strip()]
+def _prazo_auto(tm):
+    """Até quando a resposta da automação conta: 30 min no horário; fora dele, até 30 min depois da próxima abertura (8h)."""
+    if no_horario(tm): return tm + dt.timedelta(minutes=30)
+    d = tm if tm.hour < 8 else tm + dt.timedelta(days=1)
+    d = d.replace(hour=8, minute=30, second=0)
+    while d.weekday() == 6: d += dt.timedelta(days=1)
+    return d
+def cmd_botoes(a):
+    P = lambda s_: dt.datetime.fromisoformat(s_[:19])
+    agora = P(a.agora)
+    auto = collections.defaultdict(list); hum = collections.defaultdict(list)
+    for f in a.msgs.split(","):
+        for r in rows_of(f):
+            t = r.get("Message.createdAt.minute") or r.get("Message.createdAt"); c = r.get("Contact.id")
+            if not t or not c: continue
+            (hum if r.get("Message.source") in ("Chat", "Fora da Clint") else auto)[c].append(P(t))
+    latest = {}
+    for name, d in sorted(load_docs(a.store), key=lambda x: x[0]):
+        if d.get("dia") and d.get("metodo") == "mensagem": latest[d["dia"]] = (name, d)
+    os.makedirs(a.out, exist_ok=True); tot = collections.Counter(); stamp = agora.strftime("%Y%m%d_%H%M")
+    PG = {_N(x) for x in BOTAO_PEDE_GENTE}; PA = {_N(x) for x in BOTAO_PEDE_ALGO}
+    for dia, (name, d) in sorted(latest.items()):
+        if dia < a.desde or dia > a.ate: continue
+        for l in d.get("linhas", []):
+            if l.get("tipo") != "Quer conversar" or l.get("situacao") not in ("Sem resposta", "Só a IA respondeu"): continue
+            if not l.get("contato") or not l.get("hora"): continue
+            ps = _partes_msg(l.get("msg"))
+            if not ps or not all(x in PG or x in PA for x in ps): tot["texto_do_lead"] += 1; continue
+            tm = P(f"{dia}T{l['hora']}:00")
+            if any(h >= tm for h in hum.get(l["contato"], [])): continue  # já tem vendedor depois (o reconf mede)
+            if any(x in PG for x in ps):
+                l["processo"] = "Sim"; l["problema"] = "Pediu atendimento pelo botão e ninguém assumiu"; tot["botao_pede_gente_processo"] += 1
+            elif any(tm - dt.timedelta(minutes=1) <= h <= _prazo_auto(tm) for h in auto.get(l["contato"], [])):
+                l["tipo"] = "Automação atendeu"; l["situacao"] = "—"; l["espera_min"] = None
+                l["revisao"] = "Clique em botão respondido pela automação (regra de 06/11)"; tot["automacao_atendeu"] += 1
+            else:
+                l["processo"] = "Sim"; l["problema"] = "Clicou no botão e nem a automação nem um vendedor responderam"; tot["botao_sem_automacao_processo"] += 1
+        fn = os.path.join(a.out, f"maos_{dia.replace('-', '')}_rev_{stamp}_rcbt.json")
+        json.dump(d, open(fn, "w"), ensure_ascii=False); tot["docs"] += 1
+    print(json.dumps(dict(tot), ensure_ascii=False))
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); sp = ap.add_subparsers(dest="cmd", required=True)
     p = sp.add_parser("lotes"); [p.add_argument(x, required=True) for x in ("--origins", "--q1", "--q2", "--q3", "--dia", "--out")]; p.add_argument("--template")
@@ -1429,10 +1489,11 @@ if __name__ == "__main__":
     p = sp.add_parser("datasets"); [p.add_argument(x, required=True) for x in ("--store", "--out")]; p.add_argument("--desde", default="2026-10-23")
     p = sp.add_parser("revisar"); [p.add_argument(x, required=True) for x in ("--maos", "--aud", "--out")]
     p = sp.add_parser("origensdia"); [p.add_argument(x, required=True) for x in ("--leads", "--vendas", "--hist", "--dia", "--out")]; p.add_argument("--busca", default=""); p.add_argument("--precisa", default=""); p.add_argument("--resta", default=""); p.add_argument("--chats", default=""); p.add_argument("--semcanal", default=""); p.add_argument("--auditoria", default="")
+    p = sp.add_parser("botoes"); [p.add_argument(x, required=True) for x in ("--store", "--msgs", "--agora", "--desde", "--ate", "--out")]
     p = sp.add_parser("leadsdia"); [p.add_argument(x, required=True) for x in ("--leads", "--dia", "--out")]; p.add_argument("--busca", default=""); p.add_argument("--chats", default=""); p.add_argument("--antigo", default=""); p.add_argument("--precisa", default="")
     p = sp.add_parser("vendasplan"); [p.add_argument(x, required=True) for x in ("--csv", "--hp", "--hist", "--desde", "--ate", "--out")]; p.add_argument("--chats", default="")
     p = sp.add_parser("reconf"); [p.add_argument(x, required=True) for x in ("--store", "--msgs", "--agora", "--desde", "--out")]; p.add_argument("--excl", default=""); p.add_argument("--ate", default="")
     p = sp.add_parser("levdoc"); [p.add_argument(x, required=True) for x in ("--q", "--dia", "--out")]
     p = sp.add_parser("contatos"); [p.add_argument(x, required=True) for x in ("--q", "--classe", "--dia", "--out")]
     a = ap.parse_args()
-    {"lotes": cmd_lotes, "merge": cmd_merge, "datasets": cmd_datasets, "pendentes": cmd_pendentes, "maos": cmd_maos, "conferir": cmd_conferir, "universo": cmd_universo, "classdoc": cmd_classdoc, "contatos": cmd_contatos, "revisar": cmd_revisar, "maos2": cmd_maos2, "verifdoc": cmd_verifdoc, "origensdia": cmd_origensdia, "vendasplan": cmd_vendasplan, "reconf": cmd_reconf, "levdoc": cmd_levdoc, "leadsdia": cmd_leadsdia}[a.cmd](a)
+    {"lotes": cmd_lotes, "merge": cmd_merge, "datasets": cmd_datasets, "pendentes": cmd_pendentes, "maos": cmd_maos, "conferir": cmd_conferir, "universo": cmd_universo, "classdoc": cmd_classdoc, "contatos": cmd_contatos, "revisar": cmd_revisar, "maos2": cmd_maos2, "verifdoc": cmd_verifdoc, "origensdia": cmd_origensdia, "vendasplan": cmd_vendasplan, "reconf": cmd_reconf, "levdoc": cmd_levdoc, "leadsdia": cmd_leadsdia, "botoes": cmd_botoes}[a.cmd](a)

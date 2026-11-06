@@ -191,7 +191,7 @@
 
   <section class="rv-screen" id="dia" data-pg="atend">
     <h2 class="rv-sec" id="h-dia">Correção do dia</h2>
-    <p class="rv-note">Todo lead de ISD e Protagon que escreveu no dia tem a mensagem lida e classificada: <strong>quer conversar</strong> (pediu preço, link, condição, falar com alguém, fez pergunta ou disse que quer), <strong>só reengajou</strong> ("To aqui!", "Sim, fui eu") ou <strong>saiu</strong> ("Encerrar contato", "Não tenho interesse"). Também ficam fora da conta quem clicou num botão e a automação já entregou o que pediu (link da aula, link de compra) mensagens que não pedem resposta (recusa, "eu aviso", só confirmação, resposta a pergunta da automação como "Primeira experiência" ou "É uma prioridade") e pedidos de suporte de quem já é aluno ou ganhou ingresso. Quem ficou "sem resposta" é reconferido no Clint a cada dia, com as mensagens do time até a hora da conferência: se o vendedor respondeu depois, passa para a faixa de espera real. Tempo de resposta e cobrança valem só para quem quer conversar. A espera conta só o horário de atendimento (seg a sáb, 8h às 20h). Erro de processo = lead sem vendedor responsável ou atendido só pela IA; o resto é erro de vendedor. Método novo desde 23/out.</p>
+    <p class="rv-note">Todo lead de ISD e Protagon que escreveu no dia tem a mensagem lida e classificada: <strong>quer conversar</strong> (pediu preço, link, condição, falar com alguém, fez pergunta ou disse que quer), <strong>só reengajou</strong> ("To aqui!", "Sim, fui eu") ou <strong>saiu</strong> ("Encerrar contato", "Não tenho interesse"). Também ficam fora da conta quem clicou num botão e a automação já entregou o que pediu (link da aula, link de compra) mensagens que não pedem resposta (recusa, "eu aviso", só confirmação, resposta a pergunta da automação como "Primeira experiência" ou "É uma prioridade") e pedidos de suporte de quem já é aluno ou ganhou ingresso. Quem ficou "sem resposta" é reconferido no Clint a cada dia, com as mensagens do time até a hora da conferência: se o vendedor respondeu depois, passa para a faixa de espera real. Tempo de resposta e cobrança valem só para quem quer conversar. A espera conta só o horário de atendimento (seg a sáb, 8h às 20h). Erro de processo = lead sem vendedor responsável, atendido só pela IA, ou clique em botão de disparo que ninguém assumiu; erro de vendedor = pedido escrito pelo próprio lead e não respondido. Clique em botão que a automação já respondeu (link, vaga) sai da conta. Método novo desde 23/out.</p>
     <section class="rv-funil" aria-label="Funil do atendimento">
       <div class="rv-fstep"><span class="rv-kpi-label">Leads totais</span><span class="rv-kpi-value" id="kd-leads">—</span><span class="rv-fbar"><i id="kb-leads"></i></span><span class="rv-kpi-note" id="kd-leads-note">leads que entraram no Clint no período</span></div>
       <div class="rv-fstep"><span class="rv-kpi-label">Levantada de mão</span><span class="rv-kpi-value" id="kd-lev" data-source="dia_leads" data-field="levantadas">—</span><span class="rv-fbar"><i id="kb-lev"></i></span><span class="rv-kpi-note" id="kd-fora">—</span></div>
@@ -220,7 +220,7 @@
     </div>
     <section class="rv-card rv-inner" id="casos">
       <h3>Casos para corrigir</h3>
-      <p class="rv-note">Cada lead que pediu atendimento e ficou sem resposta ou esperou mais de 1 h útil, um por linha, piores primeiro. Erro de processo vai para quem cuida das automações; erro de vendedor, para o vendedor da linha.</p>
+      <p class="rv-note">Cada lead que pediu atendimento e ficou sem resposta ou esperou mais de 1 h útil, um por linha, piores primeiro. Erro de vendedor = o lead escreveu pedindo e ninguém respondeu. Erro de processo (vai para quem cuida das automações) = lead sem responsável, só a IA respondeu, ou clicou num botão de disparo ("Falar no WhatsApp", "Prefiro por mensagem", "Quero o link") e nem a automação nem um vendedor deram sequência. Clique que a automação já respondeu não entra.</p>
       <p class="rv-period rv-recorte" data-base="maos">—</p>
       <div class="rv-bar" role="group" aria-label="Tipo de erro" id="g-tipo-erro">
         <button class="rv-chip" type="button" data-terro="" aria-pressed="true">Todos</button>
@@ -419,7 +419,7 @@ rvCalc('dia_kpis', {
         pct_ate15: n ? r.filter((x) => DIA_OK.includes(x.situacao)).length / n : null,
         mediana_espera: medDe(r.map((x) => x.espera_min)),
         sem_resposta: r.filter((x) => x.situacao === 'Sem resposta').length,
-        sem_dono: r.filter((x) => x.situacao === 'Sem resposta' && SEM_RESP(x.vendedor)).length,
+        sem_dono: r.filter((x) => x.situacao === 'Sem resposta' && (SEM_RESP(x.vendedor) || x.processo === 'Sim')).length,
         fora_horario: r.filter((x) => x.fora_horario === 'Sim').length });
     }));
     return out;
@@ -454,7 +454,7 @@ rvCalc('dia_vendedor', {
         out.push({ id: periodo + '|' + produto + '|' + vendedor, periodo, produto, vendedor, levantadas: n,
           pct_ate15: n ? mv.filter((x) => DIA_OK.includes(x.situacao)).length / n : null,
           mediana_espera: medDe(mv.map((x) => x.espera_min)),
-          sem_resposta: mv.filter((x) => x.situacao === 'Sem resposta').length,
+          sem_resposta: mv.filter((x) => x.situacao === 'Sem resposta' && x.processo !== 'Sim').length,
           lidas: cv.length,
           sem_proposta: cv.filter((x) => x.caminho === 'Nunca recebeu proposta').length });
       });
@@ -481,7 +481,7 @@ rvCalc('dia_casos', {
       if (!problema) return;
       const c = byId[x.conversa]; usados.add(x.conversa + '|' + x.dia);
       out.push({ id: x.id, dia: x.dia, semana: x.semana, produto: x.produto, hora: x.hora, vendedor: x.vendedor + (x.dono_hoje ? ' (dono hoje: ' + x.dono_hoje + ')' : '') + (x.por_ligacao === 'Sim' ? ' · ligou' : ''),
-        tipo: ['Sem dono', 'Responsável não identificado', 'Sem responsável confirmado', 'Agente de IA'].includes(x.vendedor) || x.situacao === 'Só a IA respondeu' ? 'Processo' : (x.revisao && x.revisao.startsWith('Em dúvida') ? 'Em dúvida' : 'Vendedor'), msg: x.msg || '', lead: x.lead || '', email: x.email || '', revisao: x.revisao || 'Sem 2ª leitura', problema: x.vendedor === 'Sem dono' && peso === 4 ? 'Quis conversar e está sem vendedor' : problema,
+        tipo: ['Sem dono', 'Responsável não identificado', 'Sem responsável confirmado', 'Agente de IA'].includes(x.vendedor) || x.situacao === 'Só a IA respondeu' || x.processo === 'Sim' ? 'Processo' : (x.revisao && x.revisao.startsWith('Em dúvida') ? 'Em dúvida' : 'Vendedor'), msg: x.msg || '', lead: x.lead || '', email: x.email || '', revisao: x.revisao || 'Sem 2ª leitura', problema: x.problema || (x.vendedor === 'Sem dono' && peso === 4 ? 'Quis conversar e está sem vendedor' : problema),
         espera: x.espera_min, peso, detalhe: det(c), codigo: x.id });
     });
     const regra = { 'Nunca recebeu proposta': ['Vendedor', 'Conversou e não apresentou oferta', 2], 'Ficou sem resposta do time': ['Vendedor', 'Pediu algo e ficou sem resposta', 3], 'Comprador tratado como lead': ['Processo', 'Comprador ainda na régua de venda', 1] };
@@ -509,7 +509,7 @@ rvCalc('maos_semana', {
         pct_ate15: n ? r.filter((x) => DIA_OK.includes(x.situacao)).length / n : null,
         mediana_espera: medDe(r.map((x) => x.espera_min)),
         sem_resposta: r.filter((x) => x.situacao === 'Sem resposta').length,
-        sem_dono: r.filter((x) => x.situacao === 'Sem resposta' && SEM_RESP(x.vendedor)).length });
+        sem_dono: r.filter((x) => x.situacao === 'Sem resposta' && (SEM_RESP(x.vendedor) || x.processo === 'Sim')).length });
     }));
     return out;
   },
@@ -902,7 +902,7 @@ rvCalc('origens_acoes', {
     const avisoR = lr && !lr.cobre ? ' · vale a partir de ' + ini + ' (início da leitura das mensagens)' : '';
     document.getElementById('kd-15-note').textContent = fmtInt(n15) + ' de ' + fmtInt(ped) + ' pedidos de atendimento lidos nas mensagens · espera mediana ' + fmtMin(r.mediana_espera) + ' · meta 80%' + avisoR;
     document.getElementById('kd-sem').textContent = fmtInt(sem);
-    document.getElementById('kd-sem-note').textContent = (ped ? fmtPct(sem / ped) + ' dos pedidos de atendimento · ' : '') + (r.sem_dono ? fmtInt(r.sem_dono) + ' sem responsável confirmado (processo)' : 'todas com responsável') + avisoR;
+    document.getElementById('kd-sem-note').textContent = (ped ? fmtPct(sem / ped) + ' dos pedidos de atendimento · ' : '') + (r.sem_dono ? fmtInt(r.sem_dono) + ' são erro de processo (sem responsável, ou clique em botão que ninguém assumiu)' : 'nenhuma é erro de processo') + avisoR;
   }
 
   function drawFaixas() {
