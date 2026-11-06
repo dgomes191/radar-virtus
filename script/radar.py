@@ -825,6 +825,7 @@ def sck_info(s):
     if s.startswith("["):
         try: a = [urllib.parse.unquote_plus(str(x)) for x in json.loads(s)]
         except Exception: a = [s]
+        if not a: return "", ""
         if len(a) >= 2 and a[0].lower() not in ("organico", "acesso_direto", "wc"): return a[1], ""
         if len(a) >= 2: return "", a[0].lower()
         x = a[0]
@@ -1319,6 +1320,11 @@ def _dedup_salesops(rows):
     """Duplicado = mesmo telefone e e-mail, mesmos acao, origem e utm_content (preenchidos) e criação < 1 min: fica o mais recente."""
     P = lambda s_: dt.datetime.fromisoformat((s_ or "")[:19])
     def chave(r):
+        # Sem dados pessoais na consulta (desde 06/11/2026): o mesmo telefone/e-mail no Clint é o mesmo contato, então vale o id do contato.
+        if "Contact.phone" not in r and "Contact.email" not in r:
+            ks = [(r.get("Deal.contactId") or "").strip(), (r.get("ContactFields.field_acao") or "").strip(),
+                  (r.get("DealFields.field_origem") or "").strip(), (r.get("DealFields.field_utm_content") or "").strip()]
+            return tuple(ks) if all(ks) else None
         ks = [(r.get("Contact.phone") or "").strip(), (r.get("Contact.email") or "").strip().lower(), (r.get("ContactFields.field_acao") or "").strip(),
               (r.get("DealFields.field_origem") or "").strip(), (r.get("DealFields.field_utm_content") or "").strip()]
         return tuple(ks) if all(ks) else None
