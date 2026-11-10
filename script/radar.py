@@ -1121,7 +1121,7 @@ def cmd_vendasplan(a):
             canal = RADAR_PARA_ACAO.get(canal, SEM_INFO)
         out.append({"dia": dia, "cod": cod, "c": _hash(c or cod), "produto": prod, "canal": canal, "acao": acao[:80], "campanha": camp,
                     "valor": _brl(r.get("Preço do Produto")), "vendedor": _vend(r.get("Vendedor")), "lead_desde": desde, "no_clint": bool(c),
-                    "trafego": trafego, "fonte_canal": fonte_cn, "origem_original": orig0})
+                    "trafego": trafego, "fonte_canal": fonte_cn, "origem_original": orig0, "praca": praca_produto(r.get("Nome do Produto"), prod)})
     doc = {"desde": a.desde, "ate": a.ate, "metodo": "planilha_comercial_v1", "fonte": "Google Sheets 'Backup vendas' (aba Comparacao mensal)", "vendas": out}
     json.dump(doc, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     tot = collections.defaultdict(lambda: [0, 0.0])
@@ -1150,7 +1150,7 @@ def origens_rows(store, desde):
                 l.setdefault("fonte_canal", "acao"); l.setdefault("trafego", "Tráfego pago")
             rows.append({"id": f"l-{dia}-{i}", "tipo": "lead", "dia": dia, "semana": rot, "semana_ini": sem, "produto": l["produto"],
                          "canal": l["canal"], "acao": l.get("acao") or l.get("campanha") or "", "campanha": l.get("campanha", ""), "c": l["c"], "valor": None, "vendedor": "",
-                         "trafego": l.get("trafego") or trafego_de(l["canal"]), "fonte_canal": l.get("fonte_canal", ""), "confere": l.get("confere"), "achado": bool(l.get("trafego_achado")), "lev": bool(l.get("lev")), "funil": l.get("funil", "")})
+                         "trafego": l.get("trafego") or trafego_de(l["canal"]), "fonte_canal": l.get("fonte_canal", ""), "confere": l.get("confere"), "achado": bool(l.get("trafego_achado")), "lev": bool(l.get("lev")), "funil": l.get("funil", ""), "praca": l.get("pr") or []})
     # Vendas: a planilha do comercial é a fonte. Vale o documento mais novo; os dias que ela cobre substituem as vendas do Clint.
     plan = None
     pdir = os.path.join(store, "radar_vendas_plan")
@@ -1166,7 +1166,7 @@ def origens_rows(store, desde):
             sem, rot = semana(v["dia"])
             rows.append({"id": f"p-{v['dia']}-{i}", "tipo": "venda", "dia": v["dia"], "semana": rot, "semana_ini": sem, "produto": v["produto"],
                          "canal": v["canal"], "acao": v.get("campanha") or v["acao"], "c": v["c"], "valor": v["valor"], "vendedor": v["vendedor"],
-                         "trafego": v.get("trafego") or trafego_de(v["canal"]), "fonte_canal": v.get("fonte_canal", ""), "confere": None})
+                         "trafego": v.get("trafego") or trafego_de(v["canal"]), "fonte_canal": v.get("fonte_canal", ""), "confere": None, "praca": v.get("praca") or ""})
     for dia, d in sorted(por_dia.items()):
         if dia in cobertos: continue
         sem, rot = semana(dia)
@@ -1341,6 +1341,44 @@ def _dedup_salesops(rows):
             manter.append(r)
     return manter, dup
 
+
+# ---------- praça (regra da Sales Ops, relatório da Júlia; pedido do Diego em 10/11/2026) ----------
+# Lead: pelas tags do CONTATO (como estão no dia da exportação). Tags exatamente iguais aos códigos de edição viram o nome da praça;
+# o negócio entra em toda praça cujo nome aparece nas tags (pode ser mais de uma). Sem nenhuma: "Sem praça".
+# Venda: pelo nome do produto na planilha (ex.: "PROTAGON - GOIANIA 2027" -> Goiânia).
+PRACAS = {"Protagon": ["São Paulo", "Goiânia", "Porto Alegre", "Joinville"], "ISD": ["São Paulo", "Florianópolis"]}
+TAG_PRACA = {"Protagon": {"E035": "Joinville", "E037": "Porto Alegre", "E038": "Goiânia", "E039": "São Paulo", "Goiãnia": "Goiânia"},
+             "ISD": {"E019": "Florianópolis", "E020": "São Paulo"}}
+SEM_PRACA = "Sem praça"
+
+
+def _sem_acento(t):
+    return unicodedata.normalize("NFKD", t or "").encode("ascii", "ignore").decode().lower()
+
+
+def praca_tags(tags, prod):
+    if tags is None: return None
+    ts = [t.strip() for t in str(tags).split(",") if t.strip()]
+    ts = [TAG_PRACA.get(prod, {}).get(t, t) for t in ts]
+    norm = [_sem_acento(t) for t in ts]
+    achou = [p for p in PRACAS.get(prod, []) if any(_sem_acento(p) in t for t in norm)]
+    return achou or [SEM_PRACA]
+
+
+def praca_produto(nome, prod):
+    """Praça da venda pelo nome do produto na planilha: o trecho depois do primeiro " - ", sem ano e mês
+    (ex.: "PROTAGON - GOIANIA 2027" -> Goiânia; "IMERSÃO SPRINT DIGITAL - SAO PAULO - NOVEMBRO 2026" -> São Paulo)."""
+    partes = [p.strip() for p in (nome or "").split(" - ")]
+    if len(partes) < 2: return SEM_PRACA
+    t = re.sub(r"\b(19|20)\d\d\b", "", partes[1]).strip()
+    if not t or _sem_acento(t) in ("pracas", "praca"): return SEM_PRACA
+    conhecidas = PRACAS["Protagon"] + PRACAS["ISD"] + ["Ribeirão Preto", "Londrina", "Uberlândia", "Brasília", "Campinas", "Recife",
+                                                      "Vitória", "Cuiabá", "Belo Horizonte", "Alphaville"]
+    for p in conhecidas:
+        if _sem_acento(p) == _sem_acento(t): return p
+    return t.title()
+
+
 def cmd_leadsdia(a):
     """Leads do dia pela régua da Sales Ops (um por negócio). --leads: negócios criados no dia nos funis de lead, com Stage.name,
     utm_content, Contact.email/name/phone (usados só para excluir e deduplicar; não são gravados); --busca/--chats: checagens extras
@@ -1373,6 +1411,9 @@ def cmd_leadsdia(a):
         for r in rows_of(p):
             if r.get("Contact.id") and _lead_abriu(r.get("Chat.createdAt") or "", r.get("Chat.firstCustumerMessageAt") or ""):
                 chl[r["Contact.id"]].append(r.get("Chat.firstCustumerMessageAt") or "")
+    tags_por_deal = {}
+    for p in [x for x in (getattr(a, "tags", "") or "").split(",") if x]:
+        for r in rows_of(p): tags_por_deal[r.get("Deal.id")] = r.get("TagsList.tags") or ""
     out = []; sem_regra = collections.Counter(); precisa = set()
     for r in sorted(base, key=lambda r: (r.get("Deal.createdAt") or "", r.get("Deal.id") or "")):
         cid = r.get("Deal.contactId") or ""; prod = FUNIS_LEAD[r["Deal.originId"]]
@@ -1408,6 +1449,8 @@ def cmd_leadsdia(a):
         item = {"d": hashlib.sha1(("d" + (r.get("Deal.id") or "")).encode()).hexdigest()[:10], "c": _hash(cid), "produto": prod,
                 "acao": acao[:80] or orig[:80], "canal": cat, "fonte_canal": fonte, "trafego": traf, "lev": lev, "etapa": st[:40]}
         if prod == "Protagon": item["funil"] = "Conexão" if r["Deal.originId"] == FUNIL_CONEXAO_PRO else "Pré checkout"
+        tg = r.get("TagsList.tags") if "TagsList.tags" in r else tags_por_deal.get(r.get("Deal.id"), "")
+        if "TagsList.tags" in r or tags_por_deal: item["pr"] = praca_tags(tg or "", prod)
         out.append(item)
     if getattr(a, "precisa", ""): json.dump(sorted(x for x in precisa if x), open(a.precisa, "w"))
     doc = {"dia": dia, "metodo": "origens_v3_salesops", "leads": out, "vendas": [], "excluidos": dict(exc), "sem_regra": dict(sem_regra)}
@@ -1490,7 +1533,7 @@ if __name__ == "__main__":
     p = sp.add_parser("revisar"); [p.add_argument(x, required=True) for x in ("--maos", "--aud", "--out")]
     p = sp.add_parser("origensdia"); [p.add_argument(x, required=True) for x in ("--leads", "--vendas", "--hist", "--dia", "--out")]; p.add_argument("--busca", default=""); p.add_argument("--precisa", default=""); p.add_argument("--resta", default=""); p.add_argument("--chats", default=""); p.add_argument("--semcanal", default=""); p.add_argument("--auditoria", default="")
     p = sp.add_parser("botoes"); [p.add_argument(x, required=True) for x in ("--store", "--msgs", "--agora", "--desde", "--ate", "--out")]
-    p = sp.add_parser("leadsdia"); [p.add_argument(x, required=True) for x in ("--leads", "--dia", "--out")]; p.add_argument("--busca", default=""); p.add_argument("--chats", default=""); p.add_argument("--antigo", default=""); p.add_argument("--precisa", default="")
+    p = sp.add_parser("leadsdia"); [p.add_argument(x, required=True) for x in ("--leads", "--dia", "--out")]; p.add_argument("--busca", default=""); p.add_argument("--chats", default=""); p.add_argument("--antigo", default=""); p.add_argument("--precisa", default=""); p.add_argument("--tags", default="")
     p = sp.add_parser("vendasplan"); [p.add_argument(x, required=True) for x in ("--csv", "--hp", "--hist", "--desde", "--ate", "--out")]; p.add_argument("--chats", default="")
     p = sp.add_parser("reconf"); [p.add_argument(x, required=True) for x in ("--store", "--msgs", "--agora", "--desde", "--out")]; p.add_argument("--excl", default=""); p.add_argument("--ate", default="")
     p = sp.add_parser("levdoc"); [p.add_argument(x, required=True) for x in ("--q", "--dia", "--out")]
