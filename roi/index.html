@@ -1,0 +1,385 @@
+<title>ROI dos Disparos Virtus</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --fg:#17201b; --muted:#5f6b64; --line:#e1e5e1;
+  --hero:#0f2e24; --hero-fg:#f1f5f2; --hero-muted:#a9c2b6; --accent:#1f6b50; --accent-soft:#e3efe9; --gold:#c9a24a; --gold-ink:#8a6a1f;
+  --bad:#a8432f; --bad-soft:#f6e6e1; --warn:#9a6b12; --warn-soft:#f6eedb;
+  --display:"Fraunces", Georgia, "Times New Roman", serif;
+  --body:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1411; --surface:#161e1a; --fg:#e8eeea; --muted:#9caaa2; --line:#26312b;
+  --hero:#0a221a; --hero-fg:#eef4f0; --hero-muted:#93b3a4; --accent:#7fcaa9; --accent-soft:#1c2c25; --gold:#d8b45e; --gold-ink:#d8b45e;
+  --bad:#e08b76; --bad-soft:#2e1d18; --warn:#e0b65e; --warn-soft:#2c2414; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e1411; --surface:#161e1a; --fg:#e8eeea; --muted:#9caaa2; --line:#26312b;
+  --hero:#0a221a; --hero-fg:#eef4f0; --hero-muted:#93b3a4; --accent:#7fcaa9; --accent-soft:#1c2c25; --gold:#d8b45e; --gold-ink:#d8b45e;
+  --bad:#e08b76; --bad-soft:#2e1d18; --warn:#e0b65e; --warn-soft:#2c2414; color-scheme:dark }
+
+body{ background:var(--bg); color:var(--fg); font-family:var(--body); font-size:15px; line-height:1.5 }
+.wrap{ max-width:1180px; margin:0 auto; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)) }
+
+.hero{ background:var(--hero); color:var(--hero-fg); position:relative; overflow:hidden }
+.hero::after{ content:""; position:absolute; right:-120px; top:-120px; width:420px; height:420px; border-radius:50%; border:1px solid color-mix(in srgb, var(--gold) 35%, transparent); pointer-events:none }
+.hero::before{ content:""; position:absolute; right:-40px; top:-40px; width:260px; height:260px; border-radius:50%; border:1px solid color-mix(in srgb, var(--gold) 25%, transparent); pointer-events:none }
+.hero .wrap{ padding-block:40px 30px; display:grid; gap:16px; position:relative; z-index:1 }
+.eyebrow{ font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); font-weight:600 }
+h1{ font-family:var(--display); font-weight:500; font-size:clamp(30px,5.4vw,50px); line-height:1.04; margin:0; letter-spacing:-.01em; text-wrap:balance }
+.lede{ margin:0; color:var(--hero-muted); max-width:72ch }
+
+.filtros{ display:grid; gap:10px; border-top:1px solid color-mix(in srgb, var(--gold) 30%, transparent); padding-top:16px }
+.frow{ display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center }
+.flabel{ font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--hero-muted); min-width:5.5rem }
+.chips{ display:flex; flex-wrap:wrap; gap:6px }
+.chip{ font:inherit; font-size:13px; padding:5px 13px; border-radius:999px; border:1px solid color-mix(in srgb, var(--hero-fg) 28%, transparent); background:transparent; color:var(--hero-fg); cursor:pointer }
+.chip[aria-pressed="true"]{ background:var(--gold); color:#17201b; border-color:var(--gold); font-weight:600 }
+.chip:focus-visible, select:focus-visible, input:focus-visible{ outline:2px solid var(--gold); outline-offset:2px }
+.hero input[type=date], .hero select{ font:inherit; font-size:13px; padding:5px 10px; border-radius:999px; border:1px solid color-mix(in srgb, var(--hero-fg) 28%, transparent); background:transparent; color:var(--hero-fg); color-scheme:dark; max-width:100% }
+.hero select option{ color:#17201b; background:#fff }
+.dt{ display:inline-flex; gap:6px; align-items:center; font-size:13px; color:var(--hero-muted) }
+
+.kpis{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px; margin-top:4px }
+.kpi{ border-top:1px solid color-mix(in srgb, var(--gold) 45%, transparent); padding-top:12px; display:grid; gap:2px; min-width:0 }
+.kpi b{ color:var(--gold); font-family:var(--display); font-size:clamp(24px,3.4vw,34px); font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1 }
+.kpi span{ color:var(--hero-muted); font-size:13px }
+.mostrando{ margin:0; color:var(--hero-muted); font-size:13px }
+.mostrando strong{ color:var(--gold); font-weight:600 }
+
+.grid{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:18px; padding-block:24px 56px }
+.card{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px; display:grid; gap:14px; align-content:start; min-width:0 }
+.card.wide{ grid-column:1 / -1 }
+.head{ display:flex; align-items:flex-start; gap:14px }
+.num{ flex:none; width:40px; height:40px; border-radius:10px; background:var(--accent-soft); color:var(--accent); display:grid; place-items:center; font-family:var(--display); font-size:19px; font-weight:600 }
+.head div{ display:grid; gap:2px; min-width:0 }
+h2{ font-size:18px; font-weight:600; margin:0; line-height:1.3; text-wrap:balance }
+.count{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:500 }
+p{ margin:0; max-width:76ch }
+.muted{ color:var(--muted); font-size:13.5px }
+ul{ margin:0; padding:0; list-style:none; display:grid }
+li{ position:relative; padding:9px 0 9px 22px; border-top:1px solid var(--line) }
+li::before{ content:""; position:absolute; left:2px; top:1.05em; width:8px; height:8px; border-radius:2px; background:var(--accent); transform:rotate(45deg) scale(.8) }
+
+.price{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px }
+.price div{ border:1px solid var(--line); border-radius:10px; padding:12px 14px; display:grid; gap:2px }
+.price b{ font-family:var(--display); font-size:22px; font-weight:600; font-variant-numeric:tabular-nums }
+.price .clint{ background:var(--accent-soft); border-color:transparent }
+.price .clint b{ color:var(--accent) }
+.price span{ font-size:13px; color:var(--muted) }
+
+.tbl{ overflow-x:auto; border-top:1px solid var(--line); max-height:34rem }
+table{ border-collapse:collapse; width:100%; font-size:13.5px; font-variant-numeric:tabular-nums }
+th, td{ text-align:left; padding:8px 10px 8px 0; border-bottom:1px solid var(--line); vertical-align:top }
+th{ position:sticky; top:0; background:var(--surface); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:500; cursor:pointer; white-space:nowrap }
+th[aria-sort]::after{ content:" ↓"; color:var(--gold-ink) }
+th[aria-sort="ascending"]::after{ content:" ↑" }
+td.n, th.n{ text-align:right }
+td.roi{ font-weight:600; color:var(--accent) }
+td.zero{ color:var(--bad) }
+tr.tot td{ font-weight:600; border-top:2px solid var(--line) }
+code{ font-size:12.5px; background:var(--accent-soft); padding:1px 5px; border-radius:4px; word-break:break-all }
+.tag{ display:inline-block; font-size:12px; font-weight:600; padding:2px 8px; border-radius:999px; background:var(--accent-soft); color:var(--accent); white-space:nowrap }
+.tag.bad{ background:var(--bad-soft); color:var(--bad) }
+.tag.warn{ background:var(--warn-soft); color:var(--warn) }
+.busca{ font:inherit; font-size:13px; padding:6px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); width:min(100%, 22rem) }
+.bars{ display:grid; gap:6px }
+.bar{ display:grid; grid-template-columns:minmax(0, 9rem) 1fr; gap:10px; align-items:center; font-size:13px }
+.bar .trk{ display:grid; gap:3px }
+.bar i{ display:block; height:9px; border-radius:3px; background:var(--gold); min-width:2px }
+.bar i.f{ background:var(--accent) }
+.bar small{ color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums }
+.legenda{ display:flex; gap:16px; font-size:12.5px; color:var(--muted) }
+.legenda span{ display:inline-flex; gap:6px; align-items:center }
+.legenda i{ width:10px; height:10px; border-radius:2px; display:inline-block }
+.aviso{ background:var(--warn-soft); color:var(--fg); border-radius:10px; padding:10px 14px; font-size:13.5px }
+.aviso[hidden]{ display:none }
+.foot{ color:var(--muted); font-size:13px; padding-bottom:40px }
+.load{ padding:60px 0; color:var(--muted) }
+
+@media (max-width:780px){
+  .grid{ grid-template-columns:1fr }
+  .kpis{ grid-template-columns:repeat(2, minmax(0,1fr)) }
+  .price{ grid-template-columns:1fr }
+  .flabel{ min-width:100% }
+}
+</style>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Grupo Virtus · Receitas · atualizado seg a sex às 8h</span>
+    <h1>ROI dos disparos de WhatsApp</h1>
+    <p class="lede">Custo dos templates disparados pela Clint contra o faturamento do time comercial (planilha do comercial) de quem recebeu um disparo nos dias antes da compra.</p>
+
+    <div class="filtros" aria-label="Filtros">
+      <div class="frow"><span class="flabel">Produto</span><div class="chips" id="f-prod"></div></div>
+      <div class="frow"><span class="flabel">Período</span>
+        <div class="chips" id="f-atalho">
+          <button class="chip" type="button" data-at="7">7 dias</button>
+          <button class="chip" type="button" data-at="M">Este mês</button>
+          <button class="chip" type="button" data-at="MA">Mês anterior</button>
+          <button class="chip" type="button" data-at="T">Tudo</button>
+        </div>
+        <label class="dt">De <input type="date" id="f-de" aria-label="Data inicial"></label>
+        <label class="dt">até <input type="date" id="f-ate" aria-label="Data final"></label>
+      </div>
+      <div class="frow"><span class="flabel">Janela</span><div class="chips" id="f-jan">
+        <button class="chip" type="button" data-j="3">3 dias</button>
+        <button class="chip" type="button" data-j="7">7 dias</button>
+        <button class="chip" type="button" data-j="15">15 dias</button>
+      </div></div>
+      <div class="frow"><span class="flabel">Recorte</span>
+        <select id="f-tipo" aria-label="Tipo de disparo"></select>
+        <select id="f-vend" aria-label="Vendedor"></select>
+        <select id="f-org" aria-label="Origem do comprador"></select>
+      </div>
+    </div>
+
+    <p class="mostrando" id="mostrando">Carregando…</p>
+    <div class="kpis">
+      <div class="kpi"><b id="k-custo">—</b><span id="k-custo-n">—</span></div>
+      <div class="kpi"><b id="k-fat">—</b><span id="k-fat-n">—</span></div>
+      <div class="kpi"><b id="k-roi">—</b><span id="k-roi-n">ROI (faturamento ÷ custo)</span></div>
+      <div class="kpi"><b id="k-roir">—</b><span id="k-roir-n">ROI só de quem respondeu ao disparo</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <main class="grid" id="main">
+    <p class="aviso card wide" id="aviso" hidden></p>
+
+    <article class="card wide" id="semanas">
+      <div class="head"><span class="num">1</span><div><h2>Semana a semana</h2><span class="count">Custo dos disparos da semana × vendas da semana com disparo antes</span></div></div>
+      <div class="legenda"><span><i style="background:var(--gold)"></i>Custo</span><span><i style="background:var(--accent)"></i>Faturamento com disparo antes</span></div>
+      <div class="bars" id="c-sem"></div>
+      <div class="tbl"><table id="t-sem"></table></div>
+      <p class="muted">Erro de envio não é cobrado (a Meta não cobra; regra combinada com o time). Semana de segunda a domingo.</p>
+    </article>
+
+    <article class="card wide" id="tipos">
+      <div class="head"><span class="num">2</span><div><h2>Por tipo de disparo</h2><span class="count">Quem paga a conta e quem só custa</span></div></div>
+      <div class="tbl"><table id="t-tipo"></table></div>
+      <p class="muted">"Com toque" = vendas em que o comprador recebeu pelo menos um disparo desse tipo dentro da janela (uma venda pode entrar em mais de um tipo, por isso a coluna não soma). "Último toque" = vendas em que esse tipo foi o último disparo antes da compra (cada venda conta uma vez). O tipo sai do nome do template; a regra está no item 6.</p>
+    </article>
+
+    <article class="card wide" id="templates">
+      <div class="head"><span class="num">3</span><div><h2>Templates</h2><span class="count">Custo × venda em que o template foi o último disparo antes da compra</span></div></div>
+      <input class="busca" id="q-tpl" type="search" placeholder="Buscar template" aria-label="Buscar template">
+      <div class="tbl"><table id="t-tpl"></table></div>
+      <p class="muted">Leitura: <span class="tag">paga</span> faturamento de último toque ≥ 1,5× o custo · <span class="tag warn">empata</span> entre 0,8× e 1,5× · <span class="tag bad">custa mais do que traz</span> abaixo de 0,8×. O disparo em massa pode ter trazido o lead para a aula ou para a conversa e o crédito ficar com o follow-up seguinte: use para priorizar teste, não para cortar sozinho.</p>
+    </article>
+
+    <article class="card" id="vendedores">
+      <div class="head"><span class="num">4</span><div><h2>Por vendedor</h2><span class="count">Vendas do comercial no período · planilha</span></div></div>
+      <div class="tbl"><table id="t-vend"></table></div>
+    </article>
+
+    <article class="card" id="origens">
+      <div class="head"><span class="num">5</span><div><h2>Por origem do comprador</h2><span class="count">Régua da Sales Ops (Radar de Conversas)</span></div></div>
+      <div class="tbl"><table id="t-org"></table></div>
+    </article>
+
+    <article class="card wide" id="metodo">
+      <div class="head"><span class="num">6</span><div><h2>Como ler</h2><span class="count">Preço, regras e limites</span></div></div>
+      <div class="price">
+        <div><span>Meta cobra (tabela em reais, desde 1º/out)</span><b>R$ 0,32</b><span>mensagem de marketing no Brasil</span></div>
+        <div class="clint"><span>Clint cobra da Virtus</span><b>R$ 0,54</b><span>valor usado neste painel</span></div>
+        <div><span>Erro de envio</span><b>R$ 0</b><span>não cobrado (confirmado pelo Diego em 10/11)</span></div>
+      </div>
+      <ul>
+        <li><strong>Custo:</strong> templates com status enviado na Clint no período, vezes R$ 0,54 (templates de Coliseu e 5 Liberdades ficam fora, como as vendas desses produtos). Todos os disparos entram, inclusive os que alimentam venda de checkout direto (que não é do comercial): o ROI está conservador.</li>
+        <li><strong>Faturamento:</strong> vendas da planilha "Backup vendas" do comercial (IMERSÃO = ISD, PROTAGON = Protagon), ligadas ao contato da Clint pelo código da transação (HP…). Conta a venda se o comprador recebeu um disparo até N dias antes da compra (janela escolhida no filtro).</li>
+        <li><strong>Só quem respondeu:</strong> o lead escreveu até um dia depois de receber o disparo e antes de comprar. É o número mais defensável.</li>
+        <li><strong>Produto do disparo:</strong> pelo nome do template (isd, pro, protagon, met, jv, poa…). Template sem produto no nome (fup1, abordagem_precheckout, convites de webinar…) é dividido entre ISD e Protagon pela proporção de destinatários com negócio de lead em cada produto na Clint.</li>
+        <li><strong>Tipo do disparo:</strong> pelo nome. Lista fria = "frio"; Convite e lembrete de aula = webnario, convite, encontro, zoom, sessão estratégica; Recuperação e resgate = recuperação, resgate, lost; Campanha de venda em massa = "disparo_…", últimas horas, últimos dias, reta final, terror, corrido, motivo, cupom, captada; Abordagem de pré-checkout = abordagem, precheckout; Follow-up do vendedor = fup, follow, breakup, retomando; Informativo = informativa, utilidade.</li>
+        <li><strong>Vendedor e origem:</strong> filtram só as vendas. O custo não é por vendedor nem por origem, por isso com esses filtros o ROI não se aplica e o painel mostra a parte das vendas que teve disparo antes.</li>
+        <li><strong>Atribuição não é causa:</strong> quem comprou também falou com vendedor, viu anúncio ou aula. Para o ROI incremental de verdade: separar 10% de cada lista sem receber o disparo (grupo de controle) e comparar a conversão em 15 dias.</li>
+      </ul>
+    </article>
+  </main>
+  <p class="foot" id="foot">—</p>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const R = (v) => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+  const N = (v) => Math.round(v).toLocaleString('pt-BR');
+  const X = (v) => (v == null || !isFinite(v) ? '—' : v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'x');
+  const P = (v) => (v == null || !isFinite(v) ? '—' : Math.round(v * 100) + '%');
+  const dm = (d) => d.slice(8, 10) + '/' + d.slice(5, 7);
+  const addDias = (d, n) => { const t = new Date(d + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
+  const segunda = (d) => { const t = new Date(d + 'T12:00:00Z'); const w = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - w); return t.toISOString().slice(0, 10); };
+  const ler = (k, def) => { try { const v = localStorage.getItem('roi_' + k); return v == null ? def : v; } catch (e) { return def; } };
+  const grava = (k, v) => { try { localStorage.setItem('roi_' + k, v); } catch (e) { /* sem armazenamento */ } };
+
+  let DATA = null;
+  const F = { prod: 'Todos', de: '', ate: '', jan: 15, tipo: '', vend: '', org: '' };
+  const sorts = {};
+
+  function chipsProd() {
+    const box = $('f-prod');
+    box.replaceChildren(...['Todos', 'ISD', 'Protagon'].map((p) => { const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = p; b.dataset.p = p; b.onclick = () => { F.prod = p; render(); }; return b; }));
+  }
+  function opts(sel, rotulo, vals) {
+    sel.replaceChildren(new Option(rotulo, ''), ...vals.map((v) => new Option(v, v)));
+  }
+
+  // custo do template no produto escolhido (fração)
+  // Todos = ISD + Protagon (templates de Coliseu e 5 Liberdades ficam fora, como as vendas desses produtos)
+  const frac = (n) => { const t = DATA.templates[n]; if (!t) return F.prod === 'Todos' ? 1 : 0; const p = t[0]; if (F.prod === 'Todos') return (p.ISD || 0) + (p.Protagon || 0) + (p['Sem produto'] || 0); return p[F.prod] || 0; };
+  const tipoDe = (n) => (DATA.templates[n] ? DATA.templates[n][1] : 'Outros');
+
+  function calc() {
+    const de = F.de, ate = F.ate, J = F.jan;
+    // custos
+    const cTpl = {}; let env = 0, err = 0;
+    const cSem = {};
+    for (const [d, n, s, e] of DATA.custos) {
+      if (d < de || d > ate) continue;
+      if (F.tipo && tipoDe(n) !== F.tipo) continue;
+      const f = frac(n); if (!f) continue;
+      env += s * f; err += e * f;
+      const x = cTpl[n] || (cTpl[n] = { env: 0, err: 0 }); x.env += s * f; x.err += e * f;
+      const w = segunda(d); cSem[w] = (cSem[w] || 0) + s * f;
+    }
+    // vendas
+    const vs = DATA.vendas.filter((v) => v.dia >= de && v.dia <= ate && (F.prod === 'Todos' || v.produto === F.prod) && (!F.vend || v.vendedor === F.vend) && (!F.org || v.origem === F.org));
+    const tocou = (v, tipo) => v.t.filter((t) => t[0] <= J && (!tipo || tipoDe(t[1]) === tipo));
+    const ult = (ts) => ts.reduce((a, t) => (!a || t[0] < a[0] || (t[0] === a[0] && t[1] > a[1]) ? t : a), null);
+    const linhas = vs.map((v) => { const ts = tocou(v, F.tipo); return { v, ts, resp: ts.some((t) => t[2] === 1), ult: ult(tocou(v, '')) }; });
+    return { env, err, cTpl, cSem, vs, linhas, tocou, ult };
+  }
+
+  function tabela(id, cols, rows, tot) {
+    const t = $(id); const s = sorts[id] || (sorts[id] = { k: cols.find((c) => c.sort)?.k || cols[1].k, asc: false });
+    rows = rows.slice().sort((a, b) => { const x = a[s.k], y = b[s.k]; const r = typeof x === 'string' ? String(x).localeCompare(String(y)) : (x ?? -1) - (y ?? -1); return s.asc ? r : -r; });
+    const th = document.createElement('thead'); const tr = document.createElement('tr');
+    cols.forEach((c) => { const h = document.createElement('th'); h.textContent = c.t; if (c.n) h.className = 'n'; if (c.k === s.k) h.setAttribute('aria-sort', s.asc ? 'ascending' : 'descending'); h.onclick = () => { if (s.k === c.k) s.asc = !s.asc; else { s.k = c.k; s.asc = false; } render(); }; tr.appendChild(h); });
+    th.appendChild(tr);
+    const tb = document.createElement('tbody');
+    const linha = (r, cls) => { const tr = document.createElement('tr'); if (cls) tr.className = cls; cols.forEach((c) => { const td = document.createElement('td'); if (c.n) td.className = 'n'; const v = c.f ? c.f(r, td) : r[c.k]; if (v instanceof Node) td.appendChild(v); else td.textContent = v ?? ''; tr.appendChild(td); }); return tr; };
+    rows.forEach((r) => tb.appendChild(linha(r)));
+    if (tot) tb.appendChild(linha(tot, 'tot'));
+    t.replaceChildren(th, tb);
+  }
+  const tag = (txt, cls) => { const s = document.createElement('span'); s.className = 'tag' + (cls ? ' ' + cls : ''); s.textContent = txt; return s; };
+  const leitura = (fat, custo) => (custo < 1 ? tag('—') : !fat ? tag('sem venda comercial', 'bad') : fat >= 1.5 * custo ? tag('paga') : fat >= 0.8 * custo ? tag('empata', 'warn') : tag('custa mais do que traz', 'bad'));
+
+  function render() {
+    if (!DATA) return;
+    document.querySelectorAll('#f-prod .chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.p === F.prod)));
+    document.querySelectorAll('#f-jan .chip').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.j === F.jan)));
+    const ult = DATA.dados_ate; const mes = ult.slice(0, 7) + '-01'; const mesAnt = addDias(mes, -1).slice(0, 7) + '-01';
+    const at = F.de === addDias(ult, -6) && F.ate === ult ? '7' : F.de === mes && F.ate === ult ? 'M' : F.de === mesAnt && F.ate === addDias(mes, -1) ? 'MA' : F.de === DATA.inicio && F.ate === ult ? 'T' : '';
+    document.querySelectorAll('#f-atalho .chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.at === at)));
+    $('f-de').value = F.de; $('f-ate').value = F.ate; $('f-tipo').value = F.tipo; $('f-vend').value = F.vend; $('f-org').value = F.org;
+    ['prod', 'jan', 'tipo', 'vend', 'org'].forEach((k) => grava(k, F[k])); grava('de', F.de); grava('ate', F.ate);
+
+    const c = calc(); const custo = c.env * DATA.preco;
+    const com = c.linhas.filter((l) => l.ts.length); const resp = com.filter((l) => l.resp);
+    const fatCom = com.reduce((s, l) => s + l.v.valor, 0), fatResp = resp.reduce((s, l) => s + l.v.valor, 0), fatTot = c.vs.reduce((s, v) => s + v.valor, 0);
+    const semCusto = !!(F.vend || F.org);
+    const rec = [F.prod === 'Todos' ? 'ISD e Protagon' : F.prod, dm(F.de) + ' a ' + dm(F.ate), 'janela de ' + F.jan + ' dias'].concat(F.tipo ? [F.tipo] : [], F.vend ? ['vendedor ' + F.vend] : [], F.org ? ['origem ' + F.org] : []);
+    $('mostrando').innerHTML = ''; const st = document.createElement('strong'); st.textContent = rec.join(' · '); $('mostrando').append('Mostrando ', st, ' · dados até ' + dm(ult));
+    $('k-custo').textContent = R(custo); $('k-custo-n').textContent = 'custo de ' + N(c.env) + ' disparos a R$ 0,54' + (c.err ? ' (' + N(c.err) + ' com erro, sem custo)' : '');
+    $('k-fat').textContent = R(fatCom); $('k-fat-n').textContent = 'venda comercial com disparo nos ' + F.jan + ' dias antes (' + com.length + ' de ' + c.vs.length + ' vendas, ' + P(fatTot ? fatCom / fatTot : null) + ' do faturamento)';
+    $('k-roi').textContent = semCusto ? 'não se aplica' : X(custo ? fatCom / custo : null);
+    $('k-roi-n').textContent = semCusto ? 'o custo não é por vendedor nem por origem' : 'ROI (faturamento ÷ custo)';
+    $('k-roir').textContent = semCusto ? P(fatCom ? fatResp / fatCom : null) : X(custo ? fatResp / custo : null);
+    $('k-roir-n').textContent = semCusto ? 'do faturamento com disparo veio de quem respondeu' : 'ROI só de quem respondeu ao disparo (' + resp.length + ' vendas, ' + R(fatResp) + ')';
+    const av = []; if (F.ate > addDias(ult, 0)) av.push('Dados até ' + dm(ult) + '.');
+    if (addDias(F.ate, 0) > addDias(ult, -F.jan) && !semCusto) av.push('Disparos dos últimos ' + F.jan + ' dias ainda podem gerar venda: o ROI do fim do período sobe com o tempo. A leitura mais limpa é um período que terminou há mais de ' + F.jan + ' dias.');
+    const semCl = c.vs.filter((v) => !v.no_clint).length; if (semCl) av.push(semCl + ' venda(s) do período não estão na Clint pelo código HP: entram no total, sem disparo.');
+    $('aviso').hidden = !av.length; $('aviso').textContent = av.join(' ');
+
+    // 1. semanas
+    const sems = {};
+    Object.entries(c.cSem).forEach(([w, e]) => { (sems[w] || (sems[w] = { w, env: 0, vend: 0, fat: 0, fatr: 0, n: 0 })).env += e; });
+    c.linhas.forEach((l) => { const w = segunda(l.v.dia); const s = sems[w] || (sems[w] = { w, env: 0, vend: 0, fat: 0, fatr: 0, n: 0 }); s.n += 1; if (l.ts.length) { s.vend += 1; s.fat += l.v.valor; if (l.resp) s.fatr += l.v.valor; } });
+    const sl = Object.values(sems).sort((a, b) => (a.w < b.w ? -1 : 1)).map((s) => ({ ...s, rot: dm(s.w) + ' a ' + dm(addDias(s.w, 6)), custo: s.env * DATA.preco, roi: s.env ? s.fat / (s.env * DATA.preco) : null, roir: s.env ? s.fatr / (s.env * DATA.preco) : null }));
+    const mx = Math.max(1, ...sl.map((s) => Math.max(s.custo, s.fat)));
+    $('c-sem').replaceChildren(...sl.map((s) => { const r = document.createElement('div'); r.className = 'bar'; const l = document.createElement('span'); l.textContent = s.rot; const k = document.createElement('div'); k.className = 'trk'; const a = document.createElement('i'); a.style.width = (s.custo / mx * 100) + '%'; const b = document.createElement('i'); b.className = 'f'; b.style.width = (s.fat / mx * 100) + '%'; const sm = document.createElement('small'); sm.textContent = R(s.custo) + ' → ' + R(s.fat) + (semCusto ? '' : ' · ' + X(s.roi)); k.append(a, b, sm); r.append(l, k); return r; }));
+    sorts['t-sem'] = sorts['t-sem'] || { k: 'w', asc: true };
+    tabela('t-sem', [{ t: 'Semana', k: 'w', f: (r) => r.rot }, { t: 'Disparos', k: 'env', n: 1, f: (r) => N(r.env) }, { t: 'Custo', k: 'custo', n: 1, f: (r) => R(r.custo) },
+      { t: 'Vendas', k: 'n', n: 1 }, { t: 'Com disparo', k: 'vend', n: 1 }, { t: 'Faturamento', k: 'fat', n: 1, f: (r) => R(r.fat) },
+      { t: 'ROI', k: 'roi', n: 1, f: (r, td) => { td.classList.add('roi'); return semCusto ? '—' : X(r.roi); } }, { t: 'Só quem respondeu', k: 'roir', n: 1, f: (r) => (semCusto ? '—' : X(r.roir)) }], sl);
+
+    // 2. tipos
+    const tp = {}; DATA.tipos.forEach((t) => { tp[t] = { tipo: t, env: 0, n: 0, fat: 0, nu: 0, fatu: 0 }; });
+    Object.entries(c.cTpl).forEach(([n, x]) => { const t = tipoDe(n); (tp[t] || (tp[t] = { tipo: t, env: 0, n: 0, fat: 0, nu: 0, fatu: 0 })).env += x.env; });
+    c.linhas.forEach((l) => {
+      const ts = c.tocou(l.v, ''); if (!ts.length) return;
+      new Set(ts.map((t) => tipoDe(t[1]))).forEach((t) => { if (F.tipo && t !== F.tipo) return; tp[t].n += 1; tp[t].fat += l.v.valor; });
+      const u = tipoDe(l.ult[1]); if (!F.tipo || u === F.tipo) { tp[u].nu += 1; tp[u].fatu += l.v.valor; }
+    });
+    const tl = Object.values(tp).filter((t) => t.env || t.n).map((t) => ({ ...t, custo: t.env * DATA.preco, roi: t.env ? t.fat / (t.env * DATA.preco) : null, roiu: t.env ? t.fatu / (t.env * DATA.preco) : null }));
+    sorts['t-tipo'] = sorts['t-tipo'] || { k: 'custo', asc: false };
+    tabela('t-tipo', [{ t: 'Tipo', k: 'tipo' }, { t: 'Disparos', k: 'env', n: 1, f: (r) => N(r.env) }, { t: 'Custo', k: 'custo', n: 1, f: (r) => R(r.custo) },
+      { t: 'Vendas com toque', k: 'n', n: 1 }, { t: 'Faturamento', k: 'fat', n: 1, f: (r) => R(r.fat) }, { t: 'ROI', k: 'roi', n: 1, f: (r, td) => { td.classList.add('roi'); return semCusto ? '—' : X(r.roi); } },
+      { t: 'Último toque', k: 'nu', n: 1, f: (r) => r.nu + ' · ' + R(r.fatu) }, { t: 'Leitura', k: 'roiu', f: (r) => (semCusto ? '—' : leitura(r.fatu, r.custo)) }], tl);
+
+    // 3. templates
+    const tt = {}; Object.entries(c.cTpl).forEach(([n, x]) => { tt[n] = { nome: n, env: x.env, err: x.err, nu: 0, fatu: 0 }; });
+    c.linhas.forEach((l) => { if (!l.ult) return; const n = l.ult[1]; if (F.tipo && tipoDe(n) !== F.tipo) return; const x = tt[n] || (tt[n] = { nome: n, env: 0, err: 0, nu: 0, fatu: 0 }); x.nu += 1; x.fatu += l.v.valor; });
+    const q = ($('q-tpl').value || '').trim().toLowerCase();
+    const tpl = Object.values(tt).filter((x) => (!q || x.nome.toLowerCase().includes(q)) && (x.env >= 0.5 || x.nu)).map((x) => ({ ...x, custo: x.env * DATA.preco, tipo: tipoDe(x.nome), prod: DATA.templates[x.nome] ? Object.keys(DATA.templates[x.nome][0]).join(' / ') + (DATA.templates[x.nome][2] === 'funil' ? ' (pelo funil)' : '') : '—' }));
+    sorts['t-tpl'] = sorts['t-tpl'] || { k: 'custo', asc: false };
+    tabela('t-tpl', [{ t: 'Template', k: 'nome', f: (r) => { const e = document.createElement('code'); e.textContent = r.nome; return e; } }, { t: 'Tipo', k: 'tipo' }, { t: 'Produto', k: 'prod' },
+      { t: 'Enviados', k: 'env', n: 1, f: (r) => N(r.env) }, { t: 'Erro', k: 'err', n: 1, f: (r) => N(r.err) }, { t: 'Custo', k: 'custo', n: 1, f: (r) => R(r.custo) },
+      { t: 'Vendas', k: 'nu', n: 1 }, { t: 'Faturamento', k: 'fatu', n: 1, f: (r, td) => { if (!r.fatu) td.classList.add('zero'); return R(r.fatu); } }, { t: 'Leitura', k: 'fatu', f: (r) => (semCusto ? '—' : leitura(r.fatu, r.custo)) }], tpl);
+
+    // 4 e 5. vendedor e origem (só vendas)
+    const grupo = (campo, id) => {
+      const g = {}; c.linhas.forEach((l) => { const k = l.v[campo] || '—'; const x = g[k] || (g[k] = { k, n: 0, fat: 0, nc: 0, fatc: 0, fatr: 0 }); x.n += 1; x.fat += l.v.valor; if (l.ts.length) { x.nc += 1; x.fatc += l.v.valor; if (l.resp) x.fatr += l.v.valor; } });
+      const rows = Object.values(g).map((x) => ({ ...x, pc: x.fat ? x.fatc / x.fat : null }));
+      const tot = rows.reduce((t, x) => ({ k: 'Total', n: t.n + x.n, fat: t.fat + x.fat, nc: t.nc + x.nc, fatc: t.fatc + x.fatc, fatr: t.fatr + x.fatr }), { k: 'Total', n: 0, fat: 0, nc: 0, fatc: 0, fatr: 0 }); tot.pc = tot.fat ? tot.fatc / tot.fat : null;
+      sorts[id] = sorts[id] || { k: 'fat', asc: false };
+      tabela(id, [{ t: campo === 'vendedor' ? 'Vendedor' : 'Origem', k: 'k' }, { t: 'Vendas', k: 'n', n: 1 }, { t: 'Faturamento', k: 'fat', n: 1, f: (r) => R(r.fat) },
+        { t: 'Com disparo', k: 'fatc', n: 1, f: (r) => r.nc + ' · ' + R(r.fatc) }, { t: '% do fat.', k: 'pc', n: 1, f: (r) => P(r.pc) }], rows, tot);
+    };
+    grupo('vendedor', 't-vend'); grupo('origem', 't-org');
+    $('foot').textContent = 'Atualizado em ' + DATA.gerado_em.slice(8, 10) + '/' + DATA.gerado_em.slice(5, 7) + ' às ' + DATA.gerado_em.slice(11, 16) + ', com vendas da planilha do comercial e dados da Clint até ' + dm(ult) + '. Disparos desde ' + dm(DATA.inicio) + '.';
+  }
+
+  function atalho(a) {
+    const ult = DATA.dados_ate; const mes = ult.slice(0, 7) + '-01';
+    if (a === '7') { F.de = addDias(ult, -6); F.ate = ult; }
+    if (a === 'M') { F.de = mes; F.ate = ult; }
+    if (a === 'MA') { const fim = addDias(mes, -1); F.de = fim.slice(0, 7) + '-01'; F.ate = fim; }
+    if (a === 'T') { F.de = DATA.inicio; F.ate = ult; }
+    render();
+  }
+
+  function init(d) {
+    DATA = d;
+    chipsProd();
+    opts($('f-tipo'), 'Todos os tipos de disparo', DATA.tipos.filter((t) => Object.values(DATA.templates).some((x) => x[1] === t)));
+    opts($('f-vend'), 'Todos os vendedores', [...new Set(DATA.vendas.map((v) => v.vendedor))].sort());
+    opts($('f-org'), 'Todas as origens', [...new Set(DATA.vendas.map((v) => v.origem))].sort());
+    const ok = (v, lista) => (lista.includes(v) ? v : '');
+    F.prod = ok(ler('prod', 'Todos'), ['Todos', 'ISD', 'Protagon']) || 'Todos';
+    F.jan = [3, 7, 15].includes(+ler('jan', 15)) ? +ler('jan', 15) : 15;
+    F.tipo = ok(ler('tipo', ''), DATA.tipos); F.vend = ok(ler('vend', ''), [...$('f-vend').options].map((o) => o.value)); F.org = ok(ler('org', ''), [...$('f-org').options].map((o) => o.value));
+    const de = ler('de', ''), ate = ler('ate', '');
+    const ISO = /^\d{4}-\d{2}-\d{2}$/;
+    if (ISO.test(de) && ISO.test(ate) && de >= DATA.inicio && de <= ate && ate <= DATA.dados_ate) { F.de = de; F.ate = ate; } else { F.de = DATA.dados_ate.slice(0, 7) + '-01'; F.ate = DATA.dados_ate; }
+    ['f-de', 'f-ate'].forEach((id) => { $(id).min = DATA.inicio; $(id).max = DATA.dados_ate; });
+    document.querySelectorAll('#f-atalho .chip').forEach((b) => (b.onclick = () => atalho(b.dataset.at)));
+    document.querySelectorAll('#f-jan .chip').forEach((b) => (b.onclick = () => { F.jan = +b.dataset.j; render(); }));
+    const datas = () => { const a = $('f-de').value, b = $('f-ate').value; if (!ISO.test(a) || !ISO.test(b)) return; F.de = a < b ? a : b; F.ate = a < b ? b : a; render(); };
+    $('f-de').addEventListener('change', datas); $('f-ate').addEventListener('change', datas);
+    $('f-tipo').onchange = (e) => { F.tipo = e.target.value; render(); };
+    $('f-vend').onchange = (e) => { F.vend = e.target.value; render(); };
+    $('f-org').onchange = (e) => { F.org = e.target.value; render(); };
+    $('q-tpl').addEventListener('input', render);
+    render();
+  }
+
+  fetch('data/roi.json', { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(init).catch(() => {
+    $('mostrando').textContent = 'Não foi possível carregar os dados do painel. Recarregue a página; se continuar, avise o Diego.';
+  });
+})();
+</script>
