@@ -104,7 +104,7 @@ code{ font-size:12.5px; background:var(--accent-soft); padding:1px 5px; border-r
   <div class="wrap">
     <span class="eyebrow">Grupo Virtus · Receitas · atualizado seg a sex às 8h</span>
     <h1>ROI dos disparos de WhatsApp</h1>
-    <p class="lede">Custo dos templates disparados pela Clint contra o faturamento do time comercial (planilha do comercial) de quem recebeu um disparo nos dias antes da compra.</p>
+    <p class="lede">Custo dos templates que a Meta cobrou (entregues), na data do envio, contra o faturamento do time comercial (planilha do comercial) de quem recebeu um disparo nos dias antes da compra.</p>
 
     <div class="filtros" aria-label="Filtros">
       <div class="frow"><span class="flabel">Produto</span><div class="chips" id="f-prod"></div></div>
@@ -149,7 +149,7 @@ code{ font-size:12.5px; background:var(--accent-soft); padding:1px 5px; border-r
       <div class="legenda"><span><i style="background:var(--gold)"></i>Custo</span><span><i style="background:var(--accent)"></i>Faturamento com disparo antes</span></div>
       <div class="bars" id="c-sem"></div>
       <div class="tbl"><table id="t-sem"></table></div>
-      <p class="muted">Erro de envio não é cobrado (a Meta não cobra; regra combinada com o time). Semana de segunda a domingo.</p>
+      <p class="muted">Conta só a mensagem que a Meta cobrou (entregue), na data em que foi enviada. Erro de envio e mensagem não entregue não custam. Semana de segunda a domingo.</p>
     </article>
 
     <article class="card wide" id="tipos">
@@ -178,12 +178,12 @@ code{ font-size:12.5px; background:var(--accent-soft); padding:1px 5px; border-r
     <article class="card wide" id="metodo">
       <div class="head"><span class="num">6</span><div><h2>Como ler</h2><span class="count">Preço, regras e limites</span></div></div>
       <div class="price">
-        <div><span>Meta cobra (tabela em reais, desde 1º/out)</span><b>R$ 0,32</b><span>mensagem de marketing no Brasil</span></div>
-        <div class="clint"><span>Clint cobra da Virtus</span><b>R$ 0,54</b><span>valor usado neste painel</span></div>
-        <div><span>Erro de envio</span><b>R$ 0</b><span>não cobrado (confirmado pelo Diego em 10/11)</span></div>
+        <div><span>Base do custo</span><b>Cobrada</b><span>retorno de cobrança da Meta em cada mensagem (Clint), pela data do envio</span></div>
+        <div class="clint"><span>Usado neste painel</span><b>R$ 0,33</b><span>por mensagem de marketing entregue · utilidade R$ 0,035 (mesmas tarifas do dash da infra)</span></div>
+        <div><span>Erro ou não entregue</span><b>R$ 0</b><span>a Meta não cobra</span></div>
       </div>
       <ul>
-        <li><strong>Custo:</strong> templates com status enviado na Clint no período, vezes R$ 0,54 (templates de Coliseu e 5 Liberdades ficam fora, como as vendas desses produtos). Todos os disparos entram, inclusive os que alimentam venda de checkout direto (que não é do comercial): o ROI está conservador.</li>
+        <li><strong>Custo:</strong> templates que a Meta marcou como cobrados (entregues) no retorno de cobrança, contados na data do envio: marketing × R$ 0,33 e utilidade × R$ 0,035 (templates de Coliseu e 5 Liberdades ficam fora, como as vendas desses produtos). O painel inclui todos os números de WhatsApp ligados à Clint; o dash da infra mostra uma conta por vez. Todos os disparos entram, inclusive os que alimentam venda de checkout direto (que não é do comercial): o ROI está conservador.</li>
         <li><strong>Faturamento:</strong> vendas da planilha "Backup vendas" do comercial (IMERSÃO = ISD, PROTAGON = Protagon), ligadas ao contato da Clint pelo código da transação (HP…). Conta a venda se o comprador recebeu um disparo até N dias antes da compra (janela escolhida no filtro).</li>
         <li><strong>Só quem respondeu:</strong> o lead escreveu até um dia depois de receber o disparo e antes de comprar. É o número mais defensável.</li>
         <li><strong>Produto do disparo:</strong> pelo nome do template (isd, pro, protagon, met, jv, poa…). Template sem produto no nome (fup1, abordagem_precheckout, convites de webinar…) é dividido entre ISD e Protagon pela proporção de destinatários com negócio de lead em cada produto na Clint.</li>
@@ -229,22 +229,24 @@ code{ font-size:12.5px; background:var(--accent-soft); padding:1px 5px; border-r
   function calc() {
     const de = F.de, ate = F.ate, J = F.jan;
     // custos
-    const cTpl = {}; let env = 0, err = 0;
+    // custo = mensagens cobradas pela Meta (entregues), na data do envio: marketing × preço + utilidade × preço de utilidade
+    const cTpl = {}; let env = 0, err = 0, custo = 0;
     const cSem = {};
-    for (const [d, n, s, e] of DATA.custos) {
+    for (const [d, n, mk, ut, nc] of DATA.custos) {
       if (d < de || d > ate) continue;
       if (F.tipo && tipoDe(n) !== F.tipo) continue;
       const f = frac(n); if (!f) continue;
-      env += s * f; err += e * f;
-      const x = cTpl[n] || (cTpl[n] = { env: 0, err: 0 }); x.env += s * f; x.err += e * f;
-      const w = segunda(d); cSem[w] = (cSem[w] || 0) + s * f;
+      const cu = (mk * DATA.preco + ut * DATA.preco_util) * f;
+      env += (mk + ut) * f; err += nc * f; custo += cu;
+      const x = cTpl[n] || (cTpl[n] = { env: 0, err: 0, custo: 0 }); x.env += (mk + ut) * f; x.err += nc * f; x.custo += cu;
+      const w = segunda(d); const y = cSem[w] || (cSem[w] = { env: 0, custo: 0 }); y.env += (mk + ut) * f; y.custo += cu;
     }
     // vendas
     const vs = DATA.vendas.filter((v) => v.dia >= de && v.dia <= ate && (F.prod === 'Todos' || v.produto === F.prod) && (!F.vend || v.vendedor === F.vend) && (!F.org || v.origem === F.org));
     const tocou = (v, tipo) => v.t.filter((t) => t[0] <= J && (!tipo || tipoDe(t[1]) === tipo));
     const ult = (ts) => ts.reduce((a, t) => (!a || t[0] < a[0] || (t[0] === a[0] && t[1] > a[1]) ? t : a), null);
     const linhas = vs.map((v) => { const ts = tocou(v, F.tipo); return { v, ts, resp: ts.some((t) => t[2] === 1), ult: ult(tocou(v, '')) }; });
-    return { env, err, cTpl, cSem, vs, linhas, tocou, ult };
+    return { env, err, custo, cTpl, cSem, vs, linhas, tocou, ult };
   }
 
   function tabela(id, cols, rows, tot) {
@@ -272,13 +274,13 @@ code{ font-size:12.5px; background:var(--accent-soft); padding:1px 5px; border-r
     $('f-de').value = F.de; $('f-ate').value = F.ate; $('f-tipo').value = F.tipo; $('f-vend').value = F.vend; $('f-org').value = F.org;
     ['prod', 'jan', 'tipo', 'vend', 'org'].forEach((k) => grava(k, F[k])); grava('de', F.de); grava('ate', F.ate);
 
-    const c = calc(); const custo = c.env * DATA.preco;
+    const c = calc(); const custo = c.custo;
     const com = c.linhas.filter((l) => l.ts.length); const resp = com.filter((l) => l.resp);
     const fatCom = com.reduce((s, l) => s + l.v.valor, 0), fatResp = resp.reduce((s, l) => s + l.v.valor, 0), fatTot = c.vs.reduce((s, v) => s + v.valor, 0);
     const semCusto = !!(F.vend || F.org);
     const rec = [F.prod === 'Todos' ? 'ISD e Protagon' : F.prod, dm(F.de) + ' a ' + dm(F.ate), 'janela de ' + F.jan + ' dias'].concat(F.tipo ? [F.tipo] : [], F.vend ? ['vendedor ' + F.vend] : [], F.org ? ['origem ' + F.org] : []);
     $('mostrando').innerHTML = ''; const st = document.createElement('strong'); st.textContent = rec.join(' · '); $('mostrando').append('Mostrando ', st, ' · dados até ' + dm(ult));
-    $('k-custo').textContent = R(custo); $('k-custo-n').textContent = 'custo de ' + N(c.env) + ' disparos a R$ 0,54' + (c.err ? ' (' + N(c.err) + ' com erro, sem custo)' : '');
+    $('k-custo').textContent = R(custo); $('k-custo-n').textContent = N(c.env) + ' disparos entregues e cobrados pela Meta' + (c.err ? ' (' + N(c.err) + ' sem cobrança: erro ou não entregues)' : '');
     $('k-fat').textContent = R(fatCom); $('k-fat-n').textContent = 'venda comercial com disparo nos ' + F.jan + ' dias antes (' + com.length + ' de ' + c.vs.length + ' vendas, ' + P(fatTot ? fatCom / fatTot : null) + ' do faturamento)';
     $('k-roi').textContent = semCusto ? 'não se aplica' : X(custo ? fatCom / custo : null);
     $('k-roi-n').textContent = semCusto ? 'o custo não é por vendedor nem por origem' : 'ROI (faturamento ÷ custo)';
@@ -291,38 +293,38 @@ code{ font-size:12.5px; background:var(--accent-soft); padding:1px 5px; border-r
 
     // 1. semanas
     const sems = {};
-    Object.entries(c.cSem).forEach(([w, e]) => { (sems[w] || (sems[w] = { w, env: 0, vend: 0, fat: 0, fatr: 0, n: 0 })).env += e; });
-    c.linhas.forEach((l) => { const w = segunda(l.v.dia); const s = sems[w] || (sems[w] = { w, env: 0, vend: 0, fat: 0, fatr: 0, n: 0 }); s.n += 1; if (l.ts.length) { s.vend += 1; s.fat += l.v.valor; if (l.resp) s.fatr += l.v.valor; } });
-    const sl = Object.values(sems).sort((a, b) => (a.w < b.w ? -1 : 1)).map((s) => ({ ...s, rot: dm(s.w) + ' a ' + dm(addDias(s.w, 6)), custo: s.env * DATA.preco, roi: s.env ? s.fat / (s.env * DATA.preco) : null, roir: s.env ? s.fatr / (s.env * DATA.preco) : null }));
+    Object.entries(c.cSem).forEach(([w, e]) => { const s = sems[w] || (sems[w] = { w, env: 0, custo: 0, vend: 0, fat: 0, fatr: 0, n: 0 }); s.env += e.env; s.custo += e.custo; });
+    c.linhas.forEach((l) => { const w = segunda(l.v.dia); const s = sems[w] || (sems[w] = { w, env: 0, custo: 0, vend: 0, fat: 0, fatr: 0, n: 0 }); s.n += 1; if (l.ts.length) { s.vend += 1; s.fat += l.v.valor; if (l.resp) s.fatr += l.v.valor; } });
+    const sl = Object.values(sems).sort((a, b) => (a.w < b.w ? -1 : 1)).map((s) => ({ ...s, rot: dm(s.w) + ' a ' + dm(addDias(s.w, 6)), roi: s.custo ? s.fat / s.custo : null, roir: s.custo ? s.fatr / s.custo : null }));
     const mx = Math.max(1, ...sl.map((s) => Math.max(s.custo, s.fat)));
     $('c-sem').replaceChildren(...sl.map((s) => { const r = document.createElement('div'); r.className = 'bar'; const l = document.createElement('span'); l.textContent = s.rot; const k = document.createElement('div'); k.className = 'trk'; const a = document.createElement('i'); a.style.width = (s.custo / mx * 100) + '%'; const b = document.createElement('i'); b.className = 'f'; b.style.width = (s.fat / mx * 100) + '%'; const sm = document.createElement('small'); sm.textContent = R(s.custo) + ' → ' + R(s.fat) + (semCusto ? '' : ' · ' + X(s.roi)); k.append(a, b, sm); r.append(l, k); return r; }));
     sorts['t-sem'] = sorts['t-sem'] || { k: 'w', asc: true };
-    tabela('t-sem', [{ t: 'Semana', k: 'w', f: (r) => r.rot }, { t: 'Disparos', k: 'env', n: 1, f: (r) => N(r.env) }, { t: 'Custo', k: 'custo', n: 1, f: (r) => R(r.custo) },
+    tabela('t-sem', [{ t: 'Semana', k: 'w', f: (r) => r.rot }, { t: 'Cobrados', k: 'env', n: 1, f: (r) => N(r.env) }, { t: 'Custo', k: 'custo', n: 1, f: (r) => R(r.custo) },
       { t: 'Vendas', k: 'n', n: 1 }, { t: 'Com disparo', k: 'vend', n: 1 }, { t: 'Faturamento', k: 'fat', n: 1, f: (r) => R(r.fat) },
       { t: 'ROI', k: 'roi', n: 1, f: (r, td) => { td.classList.add('roi'); return semCusto ? '—' : X(r.roi); } }, { t: 'Só quem respondeu', k: 'roir', n: 1, f: (r) => (semCusto ? '—' : X(r.roir)) }], sl);
 
     // 2. tipos
-    const tp = {}; DATA.tipos.forEach((t) => { tp[t] = { tipo: t, env: 0, n: 0, fat: 0, nu: 0, fatu: 0 }; });
-    Object.entries(c.cTpl).forEach(([n, x]) => { const t = tipoDe(n); (tp[t] || (tp[t] = { tipo: t, env: 0, n: 0, fat: 0, nu: 0, fatu: 0 })).env += x.env; });
+    const tp = {}; DATA.tipos.forEach((t) => { tp[t] = { tipo: t, env: 0, custo: 0, n: 0, fat: 0, nu: 0, fatu: 0 }; });
+    Object.entries(c.cTpl).forEach(([n, x]) => { const t = tipoDe(n); const y = tp[t] || (tp[t] = { tipo: t, env: 0, custo: 0, n: 0, fat: 0, nu: 0, fatu: 0 }); y.env += x.env; y.custo += x.custo; });
     c.linhas.forEach((l) => {
       const ts = c.tocou(l.v, ''); if (!ts.length) return;
       new Set(ts.map((t) => tipoDe(t[1]))).forEach((t) => { if (F.tipo && t !== F.tipo) return; tp[t].n += 1; tp[t].fat += l.v.valor; });
       const u = tipoDe(l.ult[1]); if (!F.tipo || u === F.tipo) { tp[u].nu += 1; tp[u].fatu += l.v.valor; }
     });
-    const tl = Object.values(tp).filter((t) => t.env || t.n).map((t) => ({ ...t, custo: t.env * DATA.preco, roi: t.env ? t.fat / (t.env * DATA.preco) : null, roiu: t.env ? t.fatu / (t.env * DATA.preco) : null }));
+    const tl = Object.values(tp).filter((t) => t.env || t.n).map((t) => ({ ...t, roi: t.custo ? t.fat / t.custo : null, roiu: t.custo ? t.fatu / t.custo : null }));
     sorts['t-tipo'] = sorts['t-tipo'] || { k: 'custo', asc: false };
-    tabela('t-tipo', [{ t: 'Tipo', k: 'tipo' }, { t: 'Disparos', k: 'env', n: 1, f: (r) => N(r.env) }, { t: 'Custo', k: 'custo', n: 1, f: (r) => R(r.custo) },
+    tabela('t-tipo', [{ t: 'Tipo', k: 'tipo' }, { t: 'Cobrados', k: 'env', n: 1, f: (r) => N(r.env) }, { t: 'Custo', k: 'custo', n: 1, f: (r) => R(r.custo) },
       { t: 'Vendas com toque', k: 'n', n: 1 }, { t: 'Faturamento', k: 'fat', n: 1, f: (r) => R(r.fat) }, { t: 'ROI', k: 'roi', n: 1, f: (r, td) => { td.classList.add('roi'); return semCusto ? '—' : X(r.roi); } },
       { t: 'Último toque', k: 'nu', n: 1, f: (r) => r.nu + ' · ' + R(r.fatu) }, { t: 'Leitura', k: 'roiu', f: (r) => (semCusto ? '—' : leitura(r.fatu, r.custo)) }], tl);
 
     // 3. templates
-    const tt = {}; Object.entries(c.cTpl).forEach(([n, x]) => { tt[n] = { nome: n, env: x.env, err: x.err, nu: 0, fatu: 0 }; });
-    c.linhas.forEach((l) => { if (!l.ult) return; const n = l.ult[1]; if (F.tipo && tipoDe(n) !== F.tipo) return; const x = tt[n] || (tt[n] = { nome: n, env: 0, err: 0, nu: 0, fatu: 0 }); x.nu += 1; x.fatu += l.v.valor; });
+    const tt = {}; Object.entries(c.cTpl).forEach(([n, x]) => { tt[n] = { nome: n, env: x.env, err: x.err, custo: x.custo, nu: 0, fatu: 0 }; });
+    c.linhas.forEach((l) => { if (!l.ult) return; const n = l.ult[1]; if (F.tipo && tipoDe(n) !== F.tipo) return; const x = tt[n] || (tt[n] = { nome: n, env: 0, err: 0, custo: 0, nu: 0, fatu: 0 }); x.nu += 1; x.fatu += l.v.valor; });
     const q = ($('q-tpl').value || '').trim().toLowerCase();
-    const tpl = Object.values(tt).filter((x) => (!q || x.nome.toLowerCase().includes(q)) && (x.env >= 0.5 || x.nu)).map((x) => ({ ...x, custo: x.env * DATA.preco, tipo: tipoDe(x.nome), prod: DATA.templates[x.nome] ? Object.keys(DATA.templates[x.nome][0]).join(' / ') + (DATA.templates[x.nome][2] === 'funil' ? ' (pelo funil)' : '') : '—' }));
+    const tpl = Object.values(tt).filter((x) => (!q || x.nome.toLowerCase().includes(q)) && (x.env >= 0.5 || x.nu)).map((x) => ({ ...x, tipo: tipoDe(x.nome), prod: DATA.templates[x.nome] ? Object.keys(DATA.templates[x.nome][0]).join(' / ') + (DATA.templates[x.nome][2] === 'funil' ? ' (pelo funil)' : '') : '—' }));
     sorts['t-tpl'] = sorts['t-tpl'] || { k: 'custo', asc: false };
     tabela('t-tpl', [{ t: 'Template', k: 'nome', f: (r) => { const e = document.createElement('code'); e.textContent = r.nome; return e; } }, { t: 'Tipo', k: 'tipo' }, { t: 'Produto', k: 'prod' },
-      { t: 'Enviados', k: 'env', n: 1, f: (r) => N(r.env) }, { t: 'Erro', k: 'err', n: 1, f: (r) => N(r.err) }, { t: 'Custo', k: 'custo', n: 1, f: (r) => R(r.custo) },
+      { t: 'Cobrados', k: 'env', n: 1, f: (r) => N(r.env) }, { t: 'Sem cobrança', k: 'err', n: 1, f: (r) => N(r.err) }, { t: 'Custo', k: 'custo', n: 1, f: (r) => R(r.custo) },
       { t: 'Vendas', k: 'nu', n: 1 }, { t: 'Faturamento', k: 'fatu', n: 1, f: (r, td) => { if (!r.fatu) td.classList.add('zero'); return R(r.fatu); } }, { t: 'Leitura', k: 'fatu', f: (r) => (semCusto ? '—' : leitura(r.fatu, r.custo)) }], tpl);
 
     // 4 e 5. vendedor e origem (só vendas)

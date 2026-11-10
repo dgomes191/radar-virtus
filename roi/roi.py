@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Painel ROI dos Disparos Virtus — gera data/roi.json a partir de arquivos já baixados.
+"""Painel ROI dos Disparos Virtus — gera data/roi.json (custo = mensagens cobradas pela Meta, na data do envio) a partir de arquivos já baixados.
 
 uso:
   roi.py build --csv vendas.csv --hp hp.json --custos custos.jsonl --tpl tpl.jsonl --cli cli.jsonl
@@ -20,7 +20,8 @@ import argparse, collections, csv, datetime as dt, hashlib, json, re, sys
 
 INICIO = '2026-10-01'
 JANELA_MAX = 15
-PRECO = 0.54
+PRECO = 0.33        # marketing (tabela da Meta no Brasil, definido pelo Diego em 10/11)
+PRECO_UTIL = 0.035  # utilidade (mesma tarifa usada pela infra)
 OK = ('SENT', 'SUCCESS')
 
 
@@ -172,11 +173,11 @@ def cmd_consultas(a):
     by = contatos_por_hp(a.hp)
     cont = sorted({c for v in vs for c in by.get(v['cod'], ())})
     ini = (D(INICIO) - dt.timedelta(days=JANELA_MAX + 1)).isoformat()
-    qs = [{"nome": "custos", "query": {"measures": ["Message.count"], "dimensions": ["Message.template_name", "Message.status"],
+    qs = [{"nome": "custos", "query": {"measures": ["Message.count"], "dimensions": ["Message.template_name", "Message.metaBilling", "Message.metaPricingCategory"],
             "filters": [{"member": "Message.contentType", "operator": "equals", "values": ["Template"]},
                         {"member": "Message.type", "operator": "equals", "values": ["Atendente"]}],
             "timeDimensions": [{"dimension": "Message.createdAt", "dateRange": [INICIO, a.ate], "granularity": "day"}],
-            "timezone": "America/Sao_Paulo", "order": {"Message.createdAt": "asc", "Message.template_name": "asc", "Message.status": "asc"},
+            "timezone": "America/Sao_Paulo", "order": {"Message.createdAt": "asc", "Message.template_name": "asc", "Message.metaBilling": "asc", "Message.metaPricingCategory": "asc"},
             "limit": 200, "offset": 0}}]
     qs.append({"nome": "funil", "query": {"measures": ["Message.count"], "dimensions": ["Message.template_name", "Deal.originId"],
                "filters": [{"member": "Message.contentType", "operator": "equals", "values": ["Template"]},
@@ -206,14 +207,21 @@ def cmd_consultas(a):
 def cmd_build(a):
     vs = ler_vendas(a.csv, a.ate)
     by = contatos_por_hp(a.hp)
-    # custos por dia e template
-    custos = collections.defaultdict(lambda: [0, 0])
+    # custos por dia (data do envio) e template: só o que a Meta cobrou (= entregue e cobrado), separando marketing e utilidade;
+    # o resto (erro, sem informação de cobrança, gratuita) fica como "não cobrada"
+    custos = collections.defaultdict(lambda: [0, 0, 0])
     for r in linhas_de(a.custos):
         dia = (r.get('Message.createdAt.day') or r.get('Message.createdAt') or '')[:10]
         if not dia or dia < INICIO or dia > a.ate:
             continue
         k = (dia, r.get('Message.template_name') or '(sem nome)')
-        custos[k][0 if r.get('Message.status') in OK else 1] += int(r['Message.count'])
+        if 'Message.metaBilling' not in r:
+            sys.exit('ERRO: a consulta de custos precisa das dimensões Message.metaBilling e Message.metaPricingCategory')
+        if r.get('Message.metaBilling') == 'Cobrada':
+            i = 1 if r.get('Message.metaPricingCategory') in ('Utilidade', 'Autenticação') else 0
+        else:
+            i = 2
+        custos[k][i] += int(r['Message.count'])
     # disparos e respostas por contato
     T = collections.defaultdict(list)
     for p in a.tpl:
@@ -270,15 +278,16 @@ def cmd_build(a):
             return {k: round(v / t, 4) for k, v in c.items()}, 'funil'
         return {'Sem produto': 1}, 'sem'
     out = dict(gerado_em=dt.datetime.now(dt.timezone(dt.timedelta(hours=-3))).isoformat(timespec='minutes'),
-               dados_ate=a.ate, inicio=INICIO, preco=PRECO, janela_max=JANELA_MAX, tipos=TIPOS,
+               dados_ate=a.ate, inicio=INICIO, preco=PRECO, preco_util=PRECO_UTIL, janela_max=JANELA_MAX, tipos=TIPOS,
                templates={n: [prod_de(n)[0], tipo_tpl(n), prod_de(n)[1]] for n in nomes},
-               custos=[[d, n, s, e] for (d, n), (s, e) in sorted(custos.items())],
+               custos=[[d, n, mk, ut, nc] for (d, n), (mk, ut, nc) in sorted(custos.items())],
                vendas=vendas)
     json.dump(out, open(a.out, 'w'), ensure_ascii=False, separators=(',', ':'))
-    env = sum(s for s, _ in custos.values()); err = sum(e for _, e in custos.values())
+    mk = sum(x[0] for x in custos.values()); ut = sum(x[1] for x in custos.values()); nc = sum(x[2] for x in custos.values())
     com = [x for x in vendas if x['t']]
     semorig = sum(1 for x in vendas if x['origem'] == 'Sem origem no Radar')
-    print(json.dumps(dict(dias=len({d for d, _ in custos}), enviados=env, erro=err, custo=round(env * PRECO, 2),
+    print(json.dumps(dict(dias=len({d for d, _ in custos}), cobradas_marketing=mk, cobradas_utilidade=ut, nao_cobradas=nc,
+                          custo=round(mk * PRECO + ut * PRECO_UTIL, 2),
                           vendas=len(vendas), faturamento=round(sum(x['valor'] for x in vendas), 2),
                           com_disparo_15d=len(com), fat_com_disparo=round(sum(x['valor'] for x in com), 2),
                           sem_clint=sum(1 for x in vendas if not x['no_clint']), sem_origem_radar=semorig,
