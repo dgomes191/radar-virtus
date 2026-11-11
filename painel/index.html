@@ -1147,7 +1147,7 @@ rvCalc('origens_acoes', {
     const nr = document.getElementById('n-regra');
     if (rg.status === 'error') { nr.textContent = 'Não foi possível calcular a conferência.'; } else if (rg.status === 'ok') {
       const x = rg.data.find((y) => y.periodo === cur && y.produto === prodNow() && naPr(y));
-      nr.textContent = !x || !x.leads ? '—' : 'Regra do time: origem pelo campo Ação em ' + fmtPct1(x.pct_acao) + ' dos leads (o resto pela Origem do negócio). Quando os dois campos existem, batem em ' + fmtPct1(x.pct_confere) + '. ' + fmtInt(x.achados) + ' leads tiveram o tráfego achado em outro negócio do mesmo contato; ' + fmtInt(x.nao_identificado) + ' seguem sem nenhum registro de tráfego no Clint.';
+      nr.textContent = !x || !x.leads ? '—' : 'Regra do time: origem pelo campo Ação em ' + fmtPct1(x.pct_acao) + ' dos leads (o resto pela Origem do negócio). ' + (x.pct_confere == null ? '' : 'Quando os dois campos existem, batem em ' + fmtPct1(x.pct_confere) + '. ') + (x.achados ? fmtInt(x.achados) + ' leads tiveram o tráfego achado em outro negócio do mesmo contato; ' : '') + fmtInt(x.nao_identificado) + ' seguem sem nenhum registro de tráfego no Clint.';
     }
     const c = rvData('origens_canal');
     if (c.status === 'error') { fail(document.querySelector('#t-origens tbody')); } else if (c.status === 'ok') {
