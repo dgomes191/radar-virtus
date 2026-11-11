@@ -647,7 +647,9 @@ const ORDEM_CANAL = ['METEÓRICO', 'WEBNÁRIO', 'FORMS META', 'CAPTURA COMERCIAL
 const ordemCanal = (c) => { const i = ORDEM_CANAL.indexOf(c); return i < 0 ? ORDEM_CANAL.length - 2.5 : i; };
 // Praça (régua da Sales Ops, 10/11): lead pelas tags do contato (pode estar em mais de uma praça; em "Todas" conta uma vez); venda pelo nome do produto.
 const PRACAS = ['Todas', 'São Paulo', 'Goiânia', 'Porto Alegre', 'Joinville', 'Florianópolis', 'Sem praça'];
-const naPraca = (r, p) => p === 'Todas' || (Array.isArray(r.praca) ? r.praca.includes(p) : (r.praca || 'Sem praça') === p);
+// Lead pode ter mais de uma praça: vem como texto separado por "|" (o painel não lê listas nos dados).
+const pracasDe = (v) => { const a = (Array.isArray(v) ? v : String(v == null ? '' : v).split('|')).map((x) => String(x).trim()).filter(Boolean); return a.length ? a : ['Sem praça']; };
+const naPraca = (r, p) => p === 'Todas' || pracasDe(r.praca).includes(p);
 const recorte = (origens, periodo, produto, praca = 'Todas') => {
   // Leads criados no período (um por negócio, régua da Sales Ops) e vendas do comercial feitas no período, na origem do comprador.
   const leads = origens.filter((r) => r.tipo === 'lead' && noPer(r, periodo, 'dia') && naProd(r, produto) && naPraca(r, praca));

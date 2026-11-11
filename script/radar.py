@@ -1150,7 +1150,7 @@ def origens_rows(store, desde):
                 l.setdefault("fonte_canal", "acao"); l.setdefault("trafego", "Tráfego pago")
             rows.append({"id": f"l-{dia}-{i}", "tipo": "lead", "dia": dia, "semana": rot, "semana_ini": sem, "produto": l["produto"],
                          "canal": l["canal"], "acao": l.get("acao") or l.get("campanha") or "", "campanha": l.get("campanha", ""), "c": l["c"], "valor": None, "vendedor": "",
-                         "trafego": l.get("trafego") or trafego_de(l["canal"]), "fonte_canal": l.get("fonte_canal", ""), "confere": l.get("confere"), "achado": bool(l.get("trafego_achado")), "lev": bool(l.get("lev")), "funil": l.get("funil", ""), "praca": l.get("pr") or []})
+                         "trafego": l.get("trafego") or trafego_de(l["canal"]), "fonte_canal": l.get("fonte_canal", ""), "confere": l.get("confere"), "achado": bool(l.get("trafego_achado")), "lev": bool(l.get("lev")), "funil": l.get("funil", ""), "praca": "|".join(l.get("pr") or [])})
     # Vendas: a planilha do comercial é a fonte. Vale o documento mais novo; os dias que ela cobre substituem as vendas do Clint.
     plan = None
     pdir = os.path.join(store, "radar_vendas_plan")
