@@ -205,23 +205,16 @@
       <div class="rv-fstep"><span class="rv-kpi-label">Leads totais</span><span class="rv-kpi-value" id="kd-leads">—</span><span class="rv-fbar"><i id="kb-leads"></i></span><span class="rv-kpi-note" id="kd-leads-note">leads que entraram no Clint no período</span></div>
       <div class="rv-fstep"><span class="rv-kpi-label">Levantada de mão</span><span class="rv-kpi-value" id="kd-lev" data-source="dia_leads" data-field="levantadas">—</span><span class="rv-fbar"><i id="kb-lev"></i></span><span class="rv-kpi-note" id="kd-fora">—</span></div>
       <div class="rv-fstep rv-frate"><span class="rv-kpi-label">Taxa de conexão</span><span class="rv-kpi-value" id="kd-conx">—</span><span class="rv-kpi-note" id="kd-conx-note">levantadas de mão ÷ leads totais (inclui lead antigo que voltou a escrever)</span></div>
-      <div class="rv-fstep rv-fgood"><span class="rv-kpi-label">Respondidas em até 15 min</span><span class="rv-kpi-value" id="kd-15" data-source="dia_kpis" data-field="pct_ate15">—</span><span class="rv-fbar"><i id="kb-15"></i></span><span class="rv-kpi-note" id="kd-15-note">—</span></div>
       <div class="rv-fstep rv-fbad"><span class="rv-kpi-label">Ficaram sem resposta</span><span class="rv-kpi-value" id="kd-sem" data-source="dia_kpis" data-field="sem_resposta">—</span><span class="rv-fbar"><i id="kb-sem"></i></span><span class="rv-kpi-note" id="kd-sem-note">—</span></div>
     </section>
     <div class="rv-grid">
-      <section class="rv-card rv-inner" id="faixas">
-        <h3>Quanto o lead esperou</h3>
-        <p class="rv-note">Quem pediu atendimento por escrito no WhatsApp no período (leitura das mensagens, desde 23/10), pelo tempo até a 1ª mensagem de um vendedor (horário útil: seg a sáb, 8h às 20h). <strong>Sem resposta</strong> = nenhum vendedor escreveu para o contato até a última conferência no Clint; <strong>Só a IA respondeu</strong> = só o agente de IA falou; <strong>Aguardando</strong> = escreveu há menos de 15 min úteis.</p>
-        <p class="rv-period rv-recorte" data-base="maos">—</p>
-        <div class="rv-chart rv-chart-sm" id="c-faixas" data-source="dia_faixas"></div>
-      </section>
       <section class="rv-card rv-inner" id="dvend">
         <h3>Por vendedor</h3>
-        <p class="rv-note">Por vendedor responsável, pela leitura das mensagens (desde 23/10): quantos pediram atendimento (pedido escrito no WhatsApp; não é a levantada de mão do funil, que segue a etapa do negócio), quantos foram respondidos em até 15 min, a espera mediana e quantos ficaram sem resposta. "Sem proposta" e "Lidas" vêm das conversas lidas (com 3 ou mais mensagens) do mesmo período.</p>
+        <p class="rv-note">Por vendedor responsável, pela leitura das mensagens (desde 23/10): quantos pediram atendimento (pedido escrito no WhatsApp; não é a levantada de mão do funil, que segue a etapa do negócio) e quantos ficaram sem resposta. Velocidade (até 15 min, espera) fica no painel de Qualidade de atendimento. "Sem proposta" e "Lidas" vêm das conversas lidas (com 3 ou mais mensagens) do mesmo período.</p>
         <p class="rv-period rv-recorte" data-base="maos">—</p>
         <div class="rv-table-wrap">
           <table class="rv-table" id="t-dvend" data-source="dia_vendedor" data-row-key="id">
-            <thead><tr><th data-field="vendedor">Vendedor</th><th data-field="levantadas">Pedidos de atendimento</th><th data-field="pct_ate15">Até 15 min</th><th data-field="mediana_espera">Espera</th><th data-field="sem_resposta">Sem resposta</th><th data-field="sem_proposta" class="rv-hide-narrow">Sem proposta</th><th data-field="lidas" class="rv-hide-narrow">Lidas</th></tr></thead>
+            <thead><tr><th data-field="vendedor">Vendedor</th><th data-field="levantadas">Pedidos de atendimento</th><th data-field="sem_resposta">Sem resposta</th><th data-field="sem_proposta" class="rv-hide-narrow">Sem proposta</th><th data-field="lidas" class="rv-hide-narrow">Lidas</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -313,10 +306,10 @@
 
   <section class="rv-card" id="base" data-pg="conv" hidden>
     <h2>Pedidos de atendimento, por semana</h2>
-    <p class="rv-note">Leads que escreveram querendo conversar ou comprar e como o time respondeu, semana a semana. Espera em horário útil. Começa em 23/out (método novo).</p>
+    <p class="rv-note">Leads que escreveram querendo conversar ou comprar e quantos ficaram sem resposta, semana a semana. Velocidade (até 15 min, espera) fica no painel de Qualidade de atendimento. Começa em 23/out (método novo).</p>
     <div class="rv-table-wrap">
       <table class="rv-table" id="t-base" data-source="maos_semana" data-row-key="id">
-        <thead><tr><th data-field="semana">Semana</th><th data-field="levantadas">Pedidos de atendimento</th><th data-field="pct_ate15">Até 15 min</th><th data-field="mediana_espera">Espera mediana</th><th data-field="sem_resposta">Sem resposta</th><th data-field="sem_dono" class="rv-hide-narrow">Sem dono</th></tr></thead>
+        <thead><tr><th data-field="semana">Semana</th><th data-field="levantadas">Pedidos de atendimento</th><th data-field="sem_resposta">Sem resposta</th><th data-field="sem_dono" class="rv-hide-narrow">Sem dono</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -330,7 +323,6 @@
   <div class="rv-panel" id="painel" role="tabpanel" aria-labelledby="tab-c" data-pg="conv" hidden>
     <section class="rv-kpis" id="numeros" aria-label="Números do grupo">
       <div class="rv-kpi"><span class="rv-kpi-label">Conversas</span><span class="rv-kpi-value dash-skeleton" id="k-conv" data-source="kpis" data-field="conversas">—</span><span class="rv-kpi-note" id="k-conv-note">conversas de verdade lidas no grupo e produto escolhidos</span></div>
-      <div class="rv-kpi"><span class="rv-kpi-label">Horas até o 1º vendedor (conversas lidas)</span><span class="rv-kpi-value dash-skeleton" id="k-horas" data-source="kpis" data-field="mediana_horas">—</span><span class="rv-kpi-note">mediana, da 1ª mensagem do lead</span></div>
       <div class="rv-kpi"><span class="rv-kpi-label" id="k-top-label">Caminho mais comum</span><span class="rv-kpi-value dash-skeleton" id="k-top" data-source="kpis" data-field="pct_top_caminho">—</span><span class="rv-kpi-note" id="k-top-note" data-source="kpis" data-field="top_caminho">—</span></div>
       <div class="rv-kpi"><span class="rv-kpi-label">Pediram para levar alguém</span><span class="rv-kpi-value dash-skeleton" id="k-dupla" data-source="kpis" data-field="pct_dupla">—</span><span class="rv-kpi-note">cônjuge, sócio, filho ou amigo</span></div>
       <div class="rv-kpi"><span class="rv-kpi-label">Conversas com pedido sem resposta</span><span class="rv-kpi-value dash-skeleton" id="k-sem" data-source="kpis" data-field="pct_sem_resposta">—</span><span class="rv-kpi-note">% das conversas lidas em que o lead pediu algo e o time não respondeu; o card do atendimento conta pedidos, não conversas</span></div>
@@ -436,20 +428,6 @@ rvCalc('dia_kpis', {
   },
 });
 
-rvCalc('dia_faixas', {
-  inputs: ['maos'],
-  title: 'Espera por faixa',
-  description: 'Quem quis conversar em cada período e produto, por faixa de tempo até a 1ª mensagem de um vendedor (horário útil).',
-  fn: (maos) => {
-    const out = [];
-    periodosDe(maos, 'dia').forEach((periodo) => PRODS.forEach((produto) => {
-      const r = maos.filter((x) => noPer(x, periodo, 'dia') && naProd(x, produto) && MAO(x));
-      FAIXAS.forEach((faixa, i) => out.push({ periodo, produto, rotulo: faixa, ordem: i, total: r.filter((x) => x.situacao === faixa).length }));
-    }));
-    return out;
-  },
-});
-
 rvCalc('dia_vendedor', {
   inputs: ['maos', 'conversas'],
   title: 'Vendedores no atendimento',
@@ -515,7 +493,7 @@ rvCalc('maos_semana', {
     const out = [];
     sems.forEach((semana) => PRODS.forEach((produto) => {
       const r = maos.filter((x) => naProd(x, produto) && MAO(x) && (semana === 'Todas' || x.semana === semana)); const n = r.length;
-      out.push({ id: semana + '|' + produto, semana, produto, levantadas: n,
+      out.push({ id: semana + '|' + produto, semana, produto, ini: semana === 'Todas' ? '' : ((maos.find((x) => x.semana === semana) || {}).semana_ini || ''), levantadas: n,
         pct_ate15: n ? r.filter((x) => DIA_OK.includes(x.situacao)).length / n : null,
         mediana_espera: medDe(r.map((x) => x.espera_min)),
         sem_resposta: r.filter((x) => x.situacao === 'Sem resposta').length,
@@ -901,33 +879,31 @@ rvCalc('origens_acoes', {
 
   function drawDia() {
     const k = rvData('dia_kpis');
-    const ids = ['kd-lev', 'kd-15', 'kd-sem', 'kd-leads', 'kd-conx'];
+    const ids = ['kd-lev', 'kd-sem', 'kd-leads', 'kd-conx'];
     ids.forEach((id) => document.getElementById(id).setAttribute('data-where', whereDia()));
     const cur = perNow(); document.getElementById('h-dia').textContent = (cur.startsWith('D:') ? 'Correção do dia · ' : 'Atendimento · ') + perLabel(cur);
     if (k.status !== 'ok') { ids.forEach((id) => { document.getElementById(id).textContent = '—'; }); return; }
     const r = k.data.find((x) => x.periodo === perNow() && x.produto === prodNow()) || {};
     const L = rvData('dia_leads'); const lr = L.status === 'ok' ? L.data.find((x) => x.periodo === perNow() && x.produto === prodNow() && naPr(x)) : null;
-    const nl = lr ? lr.leads : null; const lev = lr ? lr.levantadas : null; const ped = r.levantadas || 0; const n15 = Math.round((r.pct_ate15 || 0) * ped); const sem = r.sem_resposta || 0;
+    const nl = lr ? lr.leads : null; const lev = lr ? lr.levantadas : null; const ped = r.levantadas || 0; const sem = r.sem_resposta || 0;
     const bar = (id, v) => { document.getElementById(id).style.width = (nl ? Math.min(100, Math.max(v ? 1 : 0, (v / nl) * 100)) : 0) + '%'; };
     const ini = lr && lr.desde ? lr.desde.slice(8, 10) + '/' + lr.desde.slice(5, 7) : '';
     document.getElementById('kd-leads').textContent = nl == null ? '—' : fmtInt(nl);
     if (pracaNow() !== 'Todas') document.getElementById('h-dia').textContent += ' · ' + pracaNow();
     document.getElementById('kd-leads-note').textContent = 'leads que entraram no Clint no período (o mesmo número de Leads e vendas por origem)';
-    bar('kb-leads', nl || 0); bar('kb-lev', lev || 0); bar('kb-15', lr && lr.cobre ? n15 : 0); bar('kb-sem', lr && lr.cobre ? sem : 0);
+    bar('kb-leads', nl || 0); bar('kb-lev', lev || 0); bar('kb-sem', lr && lr.cobre ? sem : 0);
     document.getElementById('kd-lev').textContent = lev == null ? '—' : fmtInt(lev);
     document.getElementById('kd-fora').textContent = 'Protagon: negócios no funil Conexão; ISD: negócios hoje em Conexão ou etapa posterior (régua da Sales Ops)';
     document.getElementById('kd-conx').textContent = nl ? fmtPct1(lev / nl) : '—';
     document.getElementById('kd-conx-note').textContent = 'levantadas de mão ÷ leads totais (régua da Sales Ops)';
-    document.getElementById('kd-15').textContent = r.pct_ate15 == null ? '—' : fmtPct(r.pct_ate15);
     const avisoR = lr && !lr.cobre ? ' · vale a partir de ' + ini + ' (início da leitura das mensagens)' : '';
     const avisoP = pracaNow() === 'Todas' ? '' : ' · todas as praças (o filtro de praça vale para leads, levantada de mão e vendas)';
-    document.getElementById('kd-15-note').textContent = fmtInt(n15) + ' de ' + fmtInt(ped) + ' pedidos de atendimento lidos nas mensagens · espera mediana ' + fmtMin(r.mediana_espera) + ' · meta 80%' + avisoR + avisoP;
     document.getElementById('kd-sem').textContent = fmtInt(sem);
-    document.getElementById('kd-sem-note').textContent = (ped ? fmtPct(sem / ped) + ' dos pedidos de atendimento · ' : '') + (r.sem_dono ? fmtInt(r.sem_dono) + ' são erro de processo (sem responsável, ou clique em botão que ninguém assumiu)' : 'nenhuma é erro de processo') + avisoR;
+    document.getElementById('kd-sem-note').textContent = (ped ? fmtPct(sem / ped) + ' dos pedidos de atendimento · ' : '') + (r.sem_dono ? fmtInt(r.sem_dono) + ' são erro de processo (sem responsável, ou clique em botão que ninguém assumiu)' : 'nenhuma é erro de processo') + avisoR + avisoP;
   }
 
   function drawFaixas() {
-    const box = document.getElementById('c-faixas'); box.setAttribute('data-where', whereDia());
+    const box = document.getElementById('c-faixas'); if (!box) return; box.setAttribute('data-where', whereDia());
     const o = rvData('dia_faixas');
     if (o.status === 'error') { fail(box); return; }
     box.replaceChildren();
@@ -955,8 +931,7 @@ rvCalc('origens_acoes', {
     const rows = o.data.filter((r) => r.periodo === perNow() && r.produto === prodNow()).sort((a, b) => b.sem_resposta - a.sem_resposta || b.levantadas - a.levantadas);
     fillTable('t-dvend', rows, [
       (td, r) => { td.textContent = r.vendedor; if (r.vendedor === 'Sem dono') td.className = 'rv-err-p'; },
-      (td, r) => num(td, r.levantadas), (td, r) => num(td, r.pct_ate15, (v) => (v == null ? '—' : fmtPct(v))),
-      (td, r) => num(td, r.mediana_espera, fmtMin),
+      (td, r) => num(td, r.levantadas),
       (td, r) => { num(td, r.sem_resposta); if (r.sem_resposta) td.className = r.vendedor === 'Sem dono' ? 'rv-err-p' : 'rv-err-v'; },
       (td, r) => { num(td, r.sem_proposta); td.classList.add('rv-hide-narrow'); }, (td, r) => { num(td, r.lidas); td.classList.add('rv-hide-narrow'); },
     ], (r) => r.id);
@@ -978,11 +953,10 @@ rvCalc('origens_acoes', {
     const b = rvData('maos_semana');
     if (b.status === 'error') { fail(document.querySelector('#t-base tbody')); return; }
     if (b.status !== 'ok') return;
-    const rows = b.data.filter((r) => r.produto === prodNow() && r.levantadas > 0).sort((x, y) => (x.semana === 'Todas' ? 1 : y.semana === 'Todas' ? -1 : x.semana < y.semana ? 1 : -1));
+    const rows = b.data.filter((r) => r.produto === prodNow() && r.levantadas > 0).sort((x, y) => (x.semana === 'Todas' ? 1 : y.semana === 'Todas' ? -1 : (x.ini || x.semana) < (y.ini || y.semana) ? 1 : -1));
     fillTable('t-base', rows, [
       (td, r) => { td.textContent = r.semana === 'Todas' ? 'Todas as semanas' : 'Semana ' + r.semana; if (r.semana === 'Todas') td.style.fontWeight = 'var(--cds-font-weight-medium)'; },
-      (td, r) => num(td, r.levantadas), (td, r) => num(td, r.pct_ate15, (v) => (v == null ? '—' : fmtPct(v))),
-      (td, r) => num(td, r.mediana_espera, fmtMin),
+      (td, r) => num(td, r.levantadas),
       (td, r) => num(td, r.sem_resposta, (v) => fmtInt(v) + (r.levantadas ? ' (' + fmtPct(v / r.levantadas) + ')' : '')),
       (td, r) => { num(td, r.sem_dono); td.classList.add('rv-hide-narrow'); }], (r) => r.id);
   }
@@ -1001,15 +975,14 @@ rvCalc('origens_acoes', {
 
   function drawKpis() {
     const k = rvData('kpis');
-    const ids = ['k-conv', 'k-top', 'k-top-note', 'k-dupla', 'k-sem', 'k-horas'];
+    const ids = ['k-conv', 'k-top', 'k-top-note', 'k-dupla', 'k-sem'];
     ids.forEach((id) => document.getElementById(id).setAttribute('data-where', where()));
     document.getElementById('n-c').setAttribute('data-where', where('Compraram'));
     document.getElementById('n-n').setAttribute('data-where', where('Não compraram'));
     if (k.status !== 'ok') { ids.concat(['n-c', 'n-n']).forEach((id) => { document.getElementById(id).textContent = '—'; }); return; }
     const find = (aba) => k.data.find((x) => x.produto === prodNow() && x.aba === aba && x.periodo === perNow()) || { conversas: 0 };
     const r = find(abaNow());
-    ['k-conv', 'k-top', 'k-dupla', 'k-sem', 'k-horas'].forEach((id) => document.getElementById(id).classList.remove('dash-skeleton'));
-    document.getElementById('k-horas').textContent = fmtH(r.mediana_horas);
+    ['k-conv', 'k-top', 'k-dupla', 'k-sem'].forEach((id) => document.getElementById(id).classList.remove('dash-skeleton'));
     document.getElementById('n-c').textContent = fmtInt(find('Compraram').conversas);
     document.getElementById('n-n').textContent = fmtInt(find('Não compraram').conversas);
     document.getElementById('k-conv').textContent = fmtInt(r.conversas);
