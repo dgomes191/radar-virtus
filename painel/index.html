@@ -1,23 +1,20 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap">
 <style>
-/* Virtus: faixa verde-escura com dourado no topo, cartões brancos, acento verde, números em dourado */
+/* Visual igual ao ROI dos Disparos (pedido do Diego, 12/11): fundo branco, textos em verde e dourado, tema claro único */
 .rv {
-  --vt-hero:#0f2e24; --vt-hero-fg:#f1f5f2; --vt-hero-muted:#a9c2b6; --vt-gold:#c9a24a; --vt-gold-ink:#8a6a1f;
-  --vt-bg:#f3f4f1; --vt-surface:#ffffff; --vt-fg:#17201b; --vt-muted:#5f6b64; --vt-line:#e1e5e1;
-  --vt-accent:#1f6b50; --vt-accent-soft:#e3efe9; --vt-bad:#a8432f; --vt-warn:#9a6b12; --vt-ok:#1f6b50;
-  --vt-display: "Fraunces", var(--font-anthropic-serif), Georgia, serif;
+  --vt-hero:#ffffff; --vt-hero-fg:#0f2e24; --vt-hero-muted:#4f6b5e; --vt-gold:#c9a24a; --vt-gold-ink:#9a7524;
+  --vt-bg:#ffffff; --vt-surface:#ffffff; --vt-fg:#0f2e24; --vt-muted:#4f6b5e; --vt-line:#dfe7e2;
+  --vt-accent:#1f6b50; --vt-accent-soft:#e8f2ec; --vt-bad:#a8432f; --vt-warn:#9a6b12; --vt-ok:#1f6b50;
+  --vt-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --vt-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --cds-surface-popover:#ffffff; --cds-border:#dfe7e2; --cds-text-secondary:#4f6b5e; --cds-shadow-popover:0 6px 20px rgba(15,46,36,.12);
+  color-scheme: light;
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .rv {
-  --vt-hero:#0a221a; --vt-hero-fg:#eef4f0; --vt-hero-muted:#93b3a4; --vt-gold:#d8b45e; --vt-gold-ink:#d8b45e;
-  --vt-bg:#0e1411; --vt-surface:#161e1a; --vt-fg:#e8eeea; --vt-muted:#9caaa2; --vt-line:#26312b;
-  --vt-accent:#7fcaa9; --vt-accent-soft:#1c2c25; --vt-bad:#e08b76; --vt-warn:#e0b65e; --vt-ok:#7fcaa9; } }
-:root[data-theme="dark"] .rv {
-  --vt-hero:#0a221a; --vt-hero-fg:#eef4f0; --vt-hero-muted:#93b3a4; --vt-gold:#d8b45e; --vt-gold-ink:#d8b45e;
-  --vt-bg:#0e1411; --vt-surface:#161e1a; --vt-fg:#e8eeea; --vt-muted:#9caaa2; --vt-line:#26312b;
-  --vt-accent:#7fcaa9; --vt-accent-soft:#1c2c25; --vt-bad:#e08b76; --vt-warn:#e0b65e; --vt-ok:#7fcaa9; }
 .rv {
   --color-fg: var(--vt-fg); --color-fg-muted: var(--vt-muted); --color-panel: var(--vt-surface); --color-bg: var(--vt-bg);
   --color-border-line: var(--vt-line); --color-bad: var(--vt-bad); --color-warn: var(--vt-warn); --color-ok: var(--vt-ok); --color-good: var(--vt-accent);
-  display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); color: var(--vt-fg);
+  display: grid; gap: var(--cds-gap-xl); font-family: var(--vt-body); color: var(--vt-fg); font-size: 15px;
   background: var(--vt-bg); border-radius: 16px; padding: 0 0 var(--cds-pad-lg); overflow: hidden;
 }
 .rv > :not(.rv-top):not(.rv-hero) { margin-inline: clamp(12px, 2.5vw, 24px); }
@@ -33,12 +30,12 @@
 .rv-hero .rv-take { color: var(--vt-hero-muted); }
 .rv-bar { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; }
 .rv-data { display: inline-flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-caption); color: var(--vt-hero-muted); }
-.rv-date { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--vt-hero-fg) 28%, transparent); background: transparent; color: var(--vt-hero-fg); color-scheme: dark; }
+.rv-date { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--vt-hero-fg) 28%, transparent); background: transparent; color: var(--vt-hero-fg); color-scheme: light; }
 .rv-date:focus-visible { outline: 2px solid var(--vt-gold); outline-offset: 2px; }
 .rv-chip { font: inherit; font-size: var(--cds-font-size-caption); padding: 5px 14px; border-radius: 999px; border: 1px solid var(--vt-line); background: var(--vt-surface); color: var(--vt-fg); cursor: pointer; }
 .rv-chip[aria-pressed="true"] { background: var(--vt-accent); color: var(--vt-surface); border-color: var(--vt-accent); }
 .rv-hero .rv-chip { background: transparent; color: var(--vt-hero-fg); border-color: color-mix(in srgb, var(--vt-hero-fg) 28%, transparent); }
-.rv-hero .rv-chip[aria-pressed="true"] { background: var(--vt-gold); color: #17201b; border-color: var(--vt-gold); font-weight: 600; }
+.rv-hero .rv-chip[aria-pressed="true"] { background: var(--vt-accent); color: #ffffff; border-color: var(--vt-gold); font-weight: 600; }
 .rv-chip:focus-visible, .rv-search:focus-visible, .rv-tab:focus-visible { outline: 2px solid var(--vt-gold); outline-offset: 2px; }
 .rv-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--cds-gap-md); }
 .rv-kpi { background: var(--vt-surface); border: 1px solid var(--vt-line); border-top: 2px solid var(--vt-gold); border-radius: 12px; padding: var(--cds-pad-lg); display: grid; gap: 2px; }
@@ -133,7 +130,7 @@
 .rv-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .rv-seg { display: inline-flex; padding: 2px; gap: 2px; border-radius: 999px; background: color-mix(in srgb, var(--vt-hero-fg) 8%, transparent); }
 .rv-seg .rv-chip { border: 0; background: transparent; color: var(--vt-hero-fg); padding: 4px 11px; font-size: 12.5px; }
-.rv-seg .rv-chip[aria-pressed="true"] { background: var(--vt-gold); color: #17201b; font-weight: 600; }
+.rv-seg .rv-chip[aria-pressed="true"] { background: var(--vt-accent); color: #ffffff; font-weight: 600; }
 .rv-datas { display: inline-flex; gap: 6px; align-items: center; }
 .rv-top .rv-data { color: var(--vt-hero-muted); font-size: 12px; gap: 4px; }
 .rv-top .rv-date { padding: 3px 8px; font-size: 12px; }
@@ -155,26 +152,71 @@
 .rv-note.rv-clamp.rv-open { display: block; -webkit-line-clamp: unset; }
 .rv-note.rv-clamp:not(.rv-open):hover { color: var(--vt-fg); }
 #origens .rv-tables2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: var(--cds-gap-md); align-items: start; }
+/* ===== Visual ROI (12/11) ===== */
+html, body { background: #ffffff !important; color-scheme: light; }
+.rv { border-radius: 0; }
+.rv-top .rv-title { color: var(--vt-accent); font-family: var(--vt-display); font-weight: 600; font-size: 21px; }
+.rv-top .rv-eyebrow { color: var(--vt-gold-ink); font-weight: 600; letter-spacing: .12em; }
+.rv-seg { background: var(--vt-accent-soft); }
+.rv-seg .rv-chip { color: var(--vt-fg); }
+.rv-screen > .rv-sec, .rv-card h2 { color: var(--vt-accent); }
+.rv-inner h3 { color: var(--vt-accent); }
+/* ===== Acabamento do ROI dos Disparos (12/11): título grande, filtros em linhas com rótulo, números soltos, conteúdo centralizado ===== */
+.rv { max-width: 1180px; margin: 0 auto; gap: 22px; overflow: visible; }
+.rv > :not(.rv-top):not(.rv-hero) { margin-inline: max(16px, env(safe-area-inset-left, 0px)); }
+.rv-top { position: relative !important; top: auto !important; display: grid; gap: 16px; justify-content: stretch; background: #ffffff; color: var(--vt-fg); border-bottom: 2px solid var(--vt-gold); padding: 40px max(16px, env(safe-area-inset-right, 0px)) 28px max(16px, env(safe-area-inset-left, 0px)); overflow: hidden; }
+.rv-top::before, .rv-top::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; border: 1px solid color-mix(in srgb, var(--vt-gold) 30%, transparent); }
+.rv-top::after { right: -120px; top: -120px; width: 420px; height: 420px; }
+.rv-top::before { right: -40px; top: -40px; width: 260px; height: 260px; }
+.rv-top > * { position: relative; z-index: 1; }
+.rv-brand { display: grid; gap: 10px; }
+.rv-top .rv-eyebrow { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--vt-gold-ink); font-weight: 600; }
+.rv-top .rv-title { font-family: var(--vt-display); color: var(--vt-accent); font-weight: 500; font-size: clamp(30px, 5.4vw, 50px); line-height: 1.04; letter-spacing: -.01em; }
+.rv-lede { margin: 0; color: var(--vt-muted); max-width: 72ch; }
+.rv-filters { display: grid; gap: 10px; border-top: 1px solid color-mix(in srgb, var(--vt-gold) 30%, transparent); padding-top: 16px; }
+.rv-frow { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.rv-flabel { font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--vt-muted); min-width: 5.5rem; }
+.rv-seg { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; background: transparent; border-radius: 0; }
+.rv-seg .rv-chip { font-size: 13px; padding: 5px 13px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--vt-fg) 28%, transparent); background: transparent; color: var(--vt-fg); }
+.rv-seg .rv-chip[aria-pressed="true"] { background: var(--vt-accent); border-color: var(--vt-accent); color: #ffffff; font-weight: 600; }
+.rv-top .rv-data { color: var(--vt-muted); font-size: 13px; gap: 6px; }
+.rv-top .rv-date { font-size: 13px; padding: 5px 10px; border-color: color-mix(in srgb, var(--vt-fg) 28%, transparent); color: var(--vt-fg); }
+.rv-nav { margin-top: 4px; }
+.rv-screen > .rv-sec { font-family: var(--vt-display); font-weight: 500; font-size: clamp(22px, 2.6vw, 28px); color: var(--vt-accent); }
+.rv-fstep, .rv-kpi { background: transparent; border: 0; border-top: 1px solid color-mix(in srgb, var(--vt-gold) 45%, transparent); border-radius: 0; padding: 12px 4px 0 0; }
+.rv-fstep.rv-frate { background: transparent; border-top-color: color-mix(in srgb, var(--vt-accent) 55%, transparent); }
+.rv-kpi-value { font-size: clamp(26px, 3.4vw, 34px); }
+.rv-kpi-label { letter-spacing: .08em; }
+.rv-card { border-radius: 14px; padding: 22px; }
+.rv-card h2 { font-size: 18px; }
 </style>
 
 <div class="rv" id="radar">
   <header class="rv-top" id="topo">
     <div class="rv-brand">
-      <span class="rv-logo" aria-hidden="true"></span>
-      <div class="rv-brand-txt"><h1 class="rv-title">Radar de Conversas</h1><span class="rv-eyebrow">Grupo Virtus · Receitas · dados até ontem, atualizado às 7h</span></div>
+      <span class="rv-eyebrow">Grupo Virtus · Receitas · dados até ontem, atualizado às 7h</span>
+      <h1 class="rv-title">Radar de Conversas</h1>
+      <p class="rv-lede">Leads e levantada de mão, quem ficou sem resposta, de onde vieram as vendas e o que as conversas mostram. ISD e Protagon, pelo Clint.</p>
     </div>
     <div class="rv-filters">
+      <div class="rv-frow"><span class="rv-flabel">Produto</span>
       <div class="rv-seg" role="group" aria-label="Produto">
         <button class="rv-chip" type="button" data-prod="Todos" aria-pressed="true">Todos</button>
         <button class="rv-chip" type="button" data-prod="ISD" aria-pressed="false">ISD</button>
         <button class="rv-chip" type="button" data-prod="Protagon" aria-pressed="false">Protagon</button>
-      </div>
+      </div></div>
+      <div class="rv-frow"><span class="rv-flabel">Período</span>
       <div class="rv-seg" role="group" aria-label="Período" id="g-pmodo">
         <button class="rv-chip" type="button" data-pmodo="U" aria-pressed="true">Último dia</button>
         <button class="rv-chip" type="button" data-pmodo="7" aria-pressed="false">7 dias</button>
         <button class="rv-chip" type="button" data-pmodo="M" aria-pressed="false">Mês</button>
         <button class="rv-chip" type="button" data-pmodo="T" aria-pressed="false">Tudo</button>
       </div>
+      <div class="rv-datas">
+        <label class="rv-data">De <input type="date" id="f-de" class="rv-date" min="2026-10-01" aria-label="Data inicial"></label>
+        <label class="rv-data">até <input type="date" id="f-ate" class="rv-date" min="2026-10-01" aria-label="Data final"></label>
+      </div></div>
+      <div class="rv-frow"><span class="rv-flabel">Praça</span>
       <div class="rv-seg" role="group" aria-label="Praça" id="g-praca">
         <button class="rv-chip" type="button" data-praca="Todas" aria-pressed="true">Todas as praças</button>
         <button class="rv-chip" type="button" data-praca="São Paulo" aria-pressed="false">SP</button>
@@ -183,11 +225,7 @@
         <button class="rv-chip" type="button" data-praca="Joinville" aria-pressed="false">Joinville</button>
         <button class="rv-chip" type="button" data-praca="Florianópolis" aria-pressed="false">Floripa</button>
         <button class="rv-chip" type="button" data-praca="Sem praça" aria-pressed="false">Sem praça</button>
-      </div>
-      <div class="rv-datas">
-        <label class="rv-data">De <input type="date" id="f-de" class="rv-date" min="2026-10-01" aria-label="Data inicial"></label>
-        <label class="rv-data">até <input type="date" id="f-ate" class="rv-date" min="2026-10-01" aria-label="Data final"></label>
-      </div>
+      </div></div>
     </div>
   </header>
 
@@ -1074,7 +1112,7 @@ rvCalc('origens_acoes', {
     const tot = d3.sum(rows, (r) => r.total);
     const W = box.clientWidth || 400; const rowH = 30;
     const svg = d3.select(box).append('svg').attr('width', '100%');
-    const probe = svg.append('text').attr('font-size', 12).style('font-family', 'var(--font-anthropic-sans)');
+    const probe = svg.append('text').attr('font-size', 12).style('font-family', 'var(--vt-body)');
     let lw = 0; rows.forEach((r) => { probe.text(r.rotulo); lw = Math.max(lw, probe.node().getComputedTextLength()); });
     probe.remove();
     lw = Math.min(lw, W * 0.55);
